@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         :root {
             --bg-color: #0a0a10;
             --primary-color: #007bff;
@@ -19,6 +21,7 @@
             --glass-bg: rgba(25, 25, 40, 0.3);
             --glass-border: rgba(255, 255, 255, 0.15);
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
@@ -26,6 +29,7 @@
             overflow: hidden;
             height: 100vh;
         }
+
         .glass {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -33,20 +37,23 @@
             border-radius: 10px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
         }
+
         #jsonPanel {
             position: fixed;
             top: 20px;
             left: 20px;
-            width: 350px;
+            width: 380px;
             height: calc(100vh - 40px);
             z-index: 100;
             transition: transform 0.3s ease;
             display: flex;
             flex-direction: column;
         }
+
         #jsonPanel.collapsed {
-            transform: translateX(-330px);
+            transform: translateX(-360px);
         }
+
         .panel-header {
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -54,11 +61,13 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .panel-title {
             font-size: 16px;
             font-weight: 600;
             color: #FFD54F;
         }
+
         #togglePanel {
             background: none;
             border: none;
@@ -69,9 +78,11 @@
             border-radius: 4px;
             transition: background-color 0.2s;
         }
+
         #togglePanel:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+
         .panel-content {
             flex: 1;
             padding: 20px;
@@ -79,6 +90,59 @@
             flex-direction: column;
             gap: 15px;
         }
+
+        .topic-generator {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .topic-generator h3 {
+            color: #FFD54F;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        #topicInput {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 10px;
+            color: #f0f0f0;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        #topicInput:focus {
+            border-color: #FFD54F;
+            box-shadow: 0 0 0 2px rgba(255, 213, 79, 0.2);
+        }
+
+        #generateBtn {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #8B5CF6, #A855F7);
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
         #jsonInput {
             flex: 1;
             background: rgba(0, 0, 0, 0.3);
@@ -91,10 +155,12 @@
             resize: none;
             outline: none;
         }
+
         #jsonInput:focus {
             border-color: #FFD54F;
             box-shadow: 0 0 0 2px rgba(255, 213, 79, 0.2);
         }
+
         .button {
             padding: 12px 20px;
             border: none;
@@ -106,56 +172,49 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         #loadJSON {
             background: linear-gradient(45deg, #FFD54F, #FF8C00);
             color: #000;
         }
+
         #loadJSON:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
         }
-        /* FIXED: Higher z-index and pointer-events for buttons */
+
         .control-button {
             position: fixed;
             bottom: 20px;
+            right: 20px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: var(--glass-bg);
+            background: linear-gradient(45deg, #FFD54F, #FF8C00);
             backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.37);
-            color: var(--text-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            color: #fff;
             font-size: 24px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            z-index: 1000; /* Much higher z-index */
-            pointer-events: all; /* Ensure pointer events work */
+            z-index: 1000;
+            pointer-events: all;
         }
+
         .control-button:hover {
-            background: rgba(0,123,255,0.5);
-            transform: scale(1.1);
-        }
-        #replay {
-            right: 100px;
-        }
-        #podcast {
-            right: 20px;
-            background: linear-gradient(45deg, #FFD54F, #FF8C00);
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
-            color: #fff;
-        }
-        #podcast:hover {
             background: linear-gradient(45deg, #fde06a, #e86203);
             transform: scale(1.1);
         }
-        #podcast.playing {
+
+        .control-button.playing {
             background: linear-gradient(45deg, #FF6B6B, #EE5A52);
             color: #fff;
         }
+
         #tooltip {
             position: fixed;
             max-width: 250px;
@@ -167,10 +226,11 @@
             transition: opacity 0.2s ease;
             line-height: 1.4;
         }
+
         #tooltip.show {
             opacity: 1;
         }
-        /* FIXED: Canvas container now allows pointer events to pass through in button area */
+
         #canvasContainer {
             position: fixed;
             top: 0;
@@ -179,6 +239,7 @@
             height: 100%;
             z-index: 1;
         }
+
         .collapse-indicator {
             position: fixed;
             top: 50%;
@@ -197,38 +258,104 @@
             opacity: 0;
             pointer-events: none;
         }
-        #jsonPanel.collapsed + .collapse-indicator {
+
+        #jsonPanel.collapsed+.collapse-indicator {
             opacity: 1;
             pointer-events: all;
         }
+
         .collapse-indicator:hover {
             background: rgba(255, 213, 79, 1);
             width: 35px;
         }
     </style>
 </head>
+
 <body>
     <div id="jsonPanel" class="glass">
         <div class="panel-header">
-            <div class="panel-title">Mindmap JSON</div>
+            <div class="panel-title">Mindmap Generator</div>
             <button id="togglePanel" onclick="togglePanel()">←</button>
         </div>
         <div class="panel-content">
-            <textarea id="jsonInput" placeholder='Paste your JSON here...'></textarea>
+            <div class="topic-generator">
+                <h3>🚀 Generate with AI</h3>
+                <input type="text" id="topicInput" placeholder="Enter any topic (e.g., Machine Learning, DNA Replication, Cooking)" />
+                <button id="generateBtn" onclick="generateWithPerplexity()">Generate with Perplexity AI</button>
+            </div>
+
+            <textarea id="jsonInput" placeholder='Or paste your JSON here manually...
+
+Example:
+{
+  "id": "root",
+  "title": "Your Topic",
+  "notes": "Description here",
+  "children": [
+    {
+      "id": "branch1",
+      "title": "Main Branch",
+      "notes": "Branch description",
+      "children": []
+    }
+  ]
+}'></textarea>
             <button id="loadJSON" class="button" onclick="loadJsonData()">Load Mindmap</button>
         </div>
     </div>
 
     <div class="collapse-indicator" onclick="showPanel()">→</div>
     <div id="canvasContainer"></div>
-    
-    <!-- FIXED: Direct onclick handlers to ensure buttons work -->
-    <button id="replay" class="control-button" title="Replay" onclick="handleReplay()">⟳</button>
-    <button id="podcast" class="control-button" title="Podcast" onclick="handlePodcast()">🔊</button>
-    
+
+    <!-- FIXED: Only podcast button, no replay button -->
+    <button id="podcast" class="control-button" title="Start/Stop Podcast" onclick="handlePodcast()">🔊</button>
+
     <div id="tooltip" class="glass"></div>
 
     <script>
+        function generateWithPerplexity() {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                alert('Please enter a topic first!');
+                return;
+            }
+
+            const prompt = `Create a detailed mindmap JSON structure for the topic: "${topic}".
+
+Requirements:
+1. Use exactly this JSON format:
+{
+  "id": "unique_id",
+  "title": "Node Title", 
+  "notes": "Detailed explanation of this concept (1-2 sentences)",
+  "children": []
+}
+
+2. Structure Guidelines:
+   - Root node should be the main topic
+   - Create 3-5 main branches (children of root)
+   - Each main branch should have 2-4 sub-branches
+   - Go 3-4 levels deep maximum
+   - Use snake_case for all id fields (e.g., "machine_learning", "data_structures")
+   - Make titles concise but descriptive
+   - Include informative notes for each node suitable for audio narration
+   - Ensure each id is unique across the entire structure
+
+3. Content Guidelines:
+   - Cover the most important aspects of "${topic}"
+   - Include both theoretical concepts and practical applications
+   - Make it educational and comprehensive
+   - Notes should explain concepts clearly in 1-2 sentences
+
+Please generate the complete JSON structure following these exact requirements. Provide only the JSON code, no additional text.`;
+
+            const encodedPrompt = encodeURIComponent(prompt);
+            const perplexityUrl = `https://www.perplexity.ai/search?q=${encodedPrompt}`;
+
+            window.open(perplexityUrl, '_blank');
+            console.log(`Generated Perplexity URL for topic: ${topic}`);
+        }
+
         class MindNode {
             constructor(data, parent = null, level = 0) {
                 this.id = data.id;
@@ -245,7 +372,7 @@
                 this.width = 0;
                 this.height = 0;
                 this.highlighted = false;
-                
+
                 if (data.children && Array.isArray(data.children)) {
                     data.children.forEach(childData => {
                         this.children.push(new MindNode(childData, this, level + 1));
@@ -253,7 +380,9 @@
                 }
             }
 
-            toggle() { this.expanded = !this.expanded; }
+            toggle() {
+                this.expanded = !this.expanded;
+            }
 
             getVisibleNodes() {
                 let nodes = [this];
@@ -289,22 +418,22 @@
                     stroke(255, 255, 255, 100);
                     strokeWeight(2);
                 }
-                
-                rect(this.x - this.width/2, this.y - this.height/2, this.width, this.height, 8);
-                
+
+                rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8);
+
                 fill(240, 240, 240);
                 noStroke();
                 textAlign(CENTER, CENTER);
                 textSize(12 + (3 - this.level) * 2);
                 textStyle(this.level === 0 ? BOLD : NORMAL);
                 text(this.title, this.x, this.y);
-                
+
                 if (this.children.length > 0) {
                     fill(255, 213, 79);
                     textAlign(CENTER, CENTER);
                     textSize(10);
                     let indicator = this.expanded ? '−' : '+';
-                    text(indicator, this.x + this.width/2 - 10, this.y - this.height/2 + 10);
+                    text(indicator, this.x + this.width / 2 - 10, this.y - this.height / 2 + 10);
                 }
                 pop();
             }
@@ -313,31 +442,37 @@
                 if (this.parent && this.parent.expanded) {
                     stroke(255, 255, 255, 100);
                     strokeWeight(2);
-                    line(this.parent.x + this.parent.width/2, this.parent.y,
-                         this.x - this.width/2, this.y);
+                    line(this.parent.x + this.parent.width / 2, this.parent.y,
+                        this.x - this.width / 2, this.y);
                 }
             }
 
             contains(x, y) {
-                return x >= this.x - this.width/2 && x <= this.x + this.width/2 &&
-                       y >= this.y - this.height/2 && y <= this.y + this.height/2;
+                return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 &&
+                    y >= this.y - this.height / 2 && y <= this.y + this.height / 2;
             }
         }
 
         // Global variables
         let mindmap = null;
-        let camera = { x: 0, y: 0, zoom: 1, targetX: 0, targetY: 0, targetZoom: 1 };
+        let camera = {
+            x: 0,
+            y: 0,
+            zoom: 1,
+            targetX: 0,
+            targetY: 0,
+            targetZoom: 1
+        };
         let isDragging = false;
-        let lastMouseX = 0, lastMouseY = 0;
+        let lastMouseX = 0,
+            lastMouseY = 0;
         let hoveredNode = null;
         let isNarrating = false;
         let currentNarrationIndex = 0;
         let narrationScript = [];
         let availableVoices = [];
 
-        // GLOBAL BUTTON FUNCTIONS - These will definitely work
         function togglePanel() {
-            console.log('Toggle panel clicked');
             const panel = document.getElementById('jsonPanel');
             const btn = document.getElementById('togglePanel');
             panel.classList.toggle('collapsed');
@@ -345,64 +480,48 @@
         }
 
         function showPanel() {
-            console.log('Show panel clicked');
             const panel = document.getElementById('jsonPanel');
             const btn = document.getElementById('togglePanel');
             panel.classList.remove('collapsed');
             btn.innerHTML = '←';
         }
 
-        function handleReplay() {
-            console.log('REPLAY BUTTON CLICKED!');
-            if (!mindmap) {
-                console.log('No mindmap to replay');
-                return;
-            }
-            
-            // Stop any ongoing narration
-            if (isNarrating) {
-                stopNarration();
-            }
-            
-            // Reset mindmap state
+        function resetMindmap() {
+            if (!mindmap) return;
+
             let allNodes = mindmap.getAllNodes();
             allNodes.forEach(node => {
                 node.expanded = node.level === 0;
                 node.highlighted = false;
             });
-            
+
             updateLayout();
             centerOnRoot();
-            console.log('Replay completed');
         }
 
         function handlePodcast() {
-            console.log('PODCAST BUTTON CLICKED!');
-            
+            console.log('Podcast button clicked');
             if (isNarrating) {
-                console.log('Stopping narration');
                 stopNarration();
             } else {
-                console.log('Starting narration');
                 startNarration();
             }
         }
 
         function loadJsonData() {
-            console.log('Load JSON clicked');
             try {
                 const jsonText = document.getElementById('jsonInput').value.trim();
                 if (!jsonText) {
                     alert('Please enter JSON data first.');
                     return;
                 }
-                
+
                 const data = JSON.parse(jsonText);
                 mindmap = new MindNode(data);
                 updateLayout();
                 centerOnRoot();
                 console.log('JSON loaded successfully');
-                
+
             } catch (error) {
                 console.error('JSON parsing error:', error);
                 alert('Invalid JSON format. Please check your input.');
@@ -414,32 +533,30 @@
                 alert('Please load a mindmap first.');
                 return;
             }
-            
+
             if (!('speechSynthesis' in window)) {
                 alert('Speech synthesis not supported in this browser.');
                 return;
             }
-            
+
             console.log('Starting narration...');
-            
+
             // Reset visuals first
-            handleReplay();
-            
+            resetMindmap();
+
             isNarrating = true;
             currentNarrationIndex = 0;
-            
-            // Generate narration script
+
             narrationScript = [];
             generateScript(mindmap, 0);
-            
+
             console.log('Generated script with', narrationScript.length, 'items');
-            
-            // Update button state
+
+            // FIXED: Use classList.add instead of addClass
             const podcastBtn = document.getElementById('podcast');
             podcastBtn.innerHTML = '⏸️';
             podcastBtn.classList.add('playing');
-            
-            // Start narrating
+
             setTimeout(narrateNext, 500);
         }
 
@@ -448,14 +565,13 @@
             if (node.notes) {
                 text += '. ' + node.notes;
             }
-            
+
             narrationScript.push({
                 text: text,
                 node: node,
                 speaker: speaker % 2
             });
-            
-            // Process children
+
             if (node.children && node.children.length > 0) {
                 node.children.forEach(child => {
                     generateScript(child, speaker + 1);
@@ -468,43 +584,37 @@
                 stopNarration();
                 return;
             }
-            
+
             const step = narrationScript[currentNarrationIndex];
             console.log('Narrating step', currentNarrationIndex + 1, ':', step.text);
-            
-            // Clear previous highlights
+
             mindmap.getAllNodes().forEach(n => n.highlighted = false);
-            
-            // Highlight current node
             step.node.highlighted = true;
-            
-            // Pan to node
+
             camera.targetX = step.node.x;
             camera.targetY = step.node.y;
             camera.targetZoom = 1.2;
-            
-            // Expand node if needed
+
             if (step.node.children.length > 0 && !step.node.expanded) {
                 step.node.expanded = true;
                 updateLayout();
             }
-            
-            // Create speech
+
             const utterance = new SpeechSynthesisUtterance(step.text);
             utterance.rate = 0.8;
             utterance.pitch = step.speaker === 0 ? 1.1 : 0.9;
-            
+
             utterance.onend = function() {
                 currentNarrationIndex++;
                 setTimeout(narrateNext, 800);
             };
-            
+
             utterance.onerror = function(e) {
                 console.error('Speech error:', e);
                 currentNarrationIndex++;
                 setTimeout(narrateNext, 500);
             };
-            
+
             speechSynthesis.speak(utterance);
         }
 
@@ -512,11 +622,12 @@
             console.log('Stopping narration');
             isNarrating = false;
             speechSynthesis.cancel();
-            
+
             if (mindmap) {
                 mindmap.getAllNodes().forEach(node => node.highlighted = false);
             }
-            
+
+            // FIXED: Use classList.remove instead of removeClass
             const podcastBtn = document.getElementById('podcast');
             podcastBtn.innerHTML = '🔊';
             podcastBtn.classList.remove('playing');
@@ -525,11 +636,10 @@
         function setup() {
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('canvasContainer');
-            
-            console.log('Setup complete - buttons should work now!');
+
+            console.log('Setup complete!');
             loadDefaultExample();
-            
-            // Load voices
+
             setTimeout(() => {
                 availableVoices = speechSynthesis.getVoices();
                 console.log('Voices loaded:', availableVoices.length);
@@ -538,16 +648,14 @@
 
         function loadDefaultExample() {
             let defaultJson = {
-                "id": "root", 
+                "id": "root",
                 "title": "Programming Fundamentals",
                 "notes": "Core concepts every programmer should master",
-                "children": [
-                    {
+                "children": [{
                         "id": "data_structures",
                         "title": "Data Structures",
                         "notes": "Ways to organize and store data efficiently",
-                        "children": [
-                            {
+                        "children": [{
                                 "id": "arrays",
                                 "title": "Arrays",
                                 "notes": "Contiguous memory allocation for elements"
@@ -563,8 +671,7 @@
                         "id": "algorithms",
                         "title": "Algorithms",
                         "notes": "Step-by-step procedures for solving problems",
-                        "children": [
-                            {
+                        "children": [{
                                 "id": "sorting",
                                 "title": "Sorting",
                                 "notes": "Arranging data in specific order"
@@ -578,7 +685,7 @@
                     }
                 ]
             };
-            
+
             mindmap = new MindNode(defaultJson);
             updateLayout();
             centerOnRoot();
@@ -586,7 +693,7 @@
 
         function updateLayout() {
             if (!mindmap) return;
-            
+
             let visibleNodes = mindmap.getVisibleNodes();
             textAlign(CENTER, CENTER);
             visibleNodes.forEach(node => {
@@ -594,24 +701,24 @@
                 node.width = max(textWidth(node.title) + 30, 80);
                 node.height = 40;
             });
-            
+
             layoutNodes(mindmap, 100, height / 2);
         }
 
         function layoutNodes(node, x, y) {
             node.targetX = x;
             node.targetY = y;
-            
+
             if (!node.expanded || node.children.length === 0) return;
-            
+
             let childHeight = 0;
             node.children.forEach(child => {
                 childHeight += getSubtreeHeight(child);
             });
-            
+
             let startY = y - childHeight / 2;
             let currentY = startY;
-            
+
             node.children.forEach(child => {
                 let subtreeHeight = getSubtreeHeight(child);
                 layoutNodes(child, x + 200, currentY + subtreeHeight / 2);
@@ -621,12 +728,12 @@
 
         function getSubtreeHeight(node) {
             if (!node.expanded || node.children.length === 0) return 60;
-            
+
             let totalHeight = 0;
             node.children.forEach(child => {
                 totalHeight += getSubtreeHeight(child);
             });
-            
+
             return max(totalHeight, 60);
         }
 
@@ -640,32 +747,32 @@
 
         function draw() {
             clear();
-            
+
             if (!mindmap) return;
-            
+
             camera.x = lerp(camera.x, camera.targetX, 0.1);
             camera.y = lerp(camera.y, camera.targetY, 0.1);
             camera.zoom = lerp(camera.zoom, camera.targetZoom, 0.1);
-            
+
             push();
-            translate(width/2, height/2);
+            translate(width / 2, height / 2);
             scale(camera.zoom);
             translate(-camera.x, -camera.y);
-            
+
             let visibleNodes = mindmap.getVisibleNodes();
             visibleNodes.forEach(node => node.update());
             visibleNodes.forEach(node => node.drawConnection());
             visibleNodes.forEach(node => node.draw());
-            
+
             pop();
         }
 
         function mouseMoved() {
             let worldPos = screenToWorld(mouseX, mouseY);
             let node = getNodeAt(worldPos.x, worldPos.y);
-            
+
             const tooltip = document.getElementById('tooltip');
-            
+
             if (node && node.notes) {
                 tooltip.innerHTML = node.notes;
                 tooltip.style.left = (mouseX + 15) + 'px';
@@ -687,17 +794,17 @@
 
         function screenToWorld(screenX, screenY) {
             return {
-                x: camera.x + (screenX - width/2) / camera.zoom,
-                y: camera.y + (screenY - height/2) / camera.zoom
+                x: camera.x + (screenX - width / 2) / camera.zoom,
+                y: camera.y + (screenY - height / 2) / camera.zoom
             };
         }
 
         function mousePressed() {
-            if (mouseX < 370 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
-            
+            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
+
             let worldPos = screenToWorld(mouseX, mouseY);
             let clickedNode = getNodeAt(worldPos.x, worldPos.y);
-            
+
             if (clickedNode) {
                 clickedNode.toggle();
                 updateLayout();
@@ -724,16 +831,16 @@
         }
 
         function mouseWheel(event) {
-            if (mouseX < 370 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
-            
+            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
+
             let zoomFactor = event.delta > 0 ? 0.9 : 1.1;
             let newZoom = constrain(camera.targetZoom * zoomFactor, 0.2, 3);
-            
+
             let worldPos = screenToWorld(mouseX, mouseY);
-            camera.targetX = worldPos.x - (mouseX - width/2) / newZoom;
-            camera.targetY = worldPos.y - (mouseY - height/2) / newZoom;
+            camera.targetX = worldPos.x - (mouseX - width / 2) / newZoom;
+            camera.targetY = worldPos.y - (mouseY - height / 2) / newZoom;
             camera.targetZoom = newZoom;
-            
+
             return false;
         }
 
@@ -747,11 +854,8 @@
                 handlePodcast();
                 return false;
             }
-            if (key === 'r' || key === 'R') {
-                handleReplay();
-                return false;
-            }
         }
     </script>
 </body>
+
 </html>
