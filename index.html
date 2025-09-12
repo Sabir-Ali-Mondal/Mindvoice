@@ -15,11 +15,10 @@
 
         :root {
             --bg-color: #0a0a10;
-            --primary-color: #007bff;
-            --glow-color: rgba(0, 123, 255, 0.7);
             --text-color: #f0f0f0;
-            --glass-bg: rgba(25, 25, 40, 0.6);
+            --glass-bg: rgba(25, 25, 40, 0.65);
             --glass-border: rgba(255, 255, 255, 0.15);
+            --highlight-color: #FFD54F;
         }
 
         body {
@@ -45,7 +44,8 @@
             left: 20px;
             width: 44px;
             height: 44px;
-            z-index: 101;
+            /* UPDATED: Highest z-index */
+            z-index: 1100;
             background: rgba(255, 213, 79, 0.8);
             border: none;
             border-radius: 50%;
@@ -69,8 +69,9 @@
             top: 20px;
             left: 20px;
             width: 380px;
-            height: calc(100vh - 10vh);
-            z-index: 100;
+            height: calc(100vh - 15vh);
+            /* UPDATED: High z-index, just below its button */
+            z-index: 1099;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             flex-direction: column;
@@ -84,16 +85,13 @@
         .panel-header {
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            text-align: center;
         }
 
         .panel-title {
             font-size: 16px;
             font-weight: 600;
-            color: #FFD54F;
+            color: var(--highlight-color);
         }
 
         .panel-content {
@@ -113,7 +111,7 @@
         }
 
         .topic-generator h3 {
-            color: #FFD54F;
+            color: var(--highlight-color);
             font-size: 14px;
             margin-bottom: 10px;
             font-weight: 600;
@@ -142,7 +140,7 @@
 
         .input-field:focus,
         #languageSelector:focus {
-            border-color: #FFD54F;
+            border-color: var(--highlight-color);
             box-shadow: 0 0 0 2px rgba(255, 213, 79, 0.2);
         }
 
@@ -152,11 +150,10 @@
         }
 
         .button {
-            width: 100%;
-            padding: 12px 20px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -165,6 +162,7 @@
         }
 
         #generateBtn {
+            width: 100%;
             background: linear-gradient(45deg, #8B5CF6, #A855F7);
             color: #fff;
         }
@@ -187,9 +185,29 @@
             outline: none;
         }
 
+        .json-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .action-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .action-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
         #loadJSON {
+            grid-column: 1 / -1;
+            /* Span full width */
             background: linear-gradient(45deg, #FFD54F, #FF8C00);
             color: #000;
+            padding: 12px;
         }
 
         #loadJSON:hover {
@@ -214,7 +232,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            z-index: 96;
+            z-index: 1000;
         }
 
         #podcastBtn:hover {
@@ -233,7 +251,7 @@
             width: 90%;
             max-width: 600px;
             min-height: 80px;
-            z-index: 90;
+            z-index: 999;
             padding: 15px 25px;
             opacity: 0;
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -246,11 +264,10 @@
         #infoBox.show {
             opacity: 1;
             pointer-events: all;
-            transform: translateX(-50%) translateY(0);
         }
 
         #infoBox h3 {
-            color: #FFD54F;
+            color: var(--highlight-color);
             margin-bottom: 5px;
             font-size: 16px;
         }
@@ -276,11 +293,11 @@
 
     <div id="jsonPanel" class="glass collapsed">
         <div class="panel-header">
-            <div class="panel-title">Mindmap Generator</div>
+            <div class="panel-title">Mindvoice by S.A.M.</div>
         </div>
         <div class="panel-content">
             <div class="topic-generator">
-                <h3>🚀 Generate with AI</h3>
+                <h3>Generate with AI</h3>
                 <input type="text" id="topicInput" class="input-field" placeholder="Topic (e.g., Photosynthesis)" />
                 <textarea id="descriptionInput" class="input-field" placeholder="Description (e.g., Explain for a 10th-grade class)"></textarea>
                 <select id="languageSelector" onchange="updateVoiceProfiles()">
@@ -290,19 +307,24 @@
                 </select>
                 <button id="generateBtn" class="button" onclick="generateWithPerplexity()">Generate with Perplexity AI</button>
             </div>
+            <button id="pasteJSON" class="button action-button" onclick="pasteAndLoadJSON()">Paste & Load</button>
 
             <textarea id="jsonInput" placeholder='Paste AI response here. The tool will automatically find and fix the JSON.'></textarea>
-            <button id="loadJSON" class="button" onclick="loadJsonData()">Load Mindmap</button>
+
+            <div class="json-actions">
+                <button id="uploadJSON" class="button action-button" onclick="document.getElementById('uploadInput').click()">Upload</button>
+                <input type="file" id="uploadInput" accept=".json" style="display: none;">
+                <button id="downloadJSON" class="button action-button" onclick="downloadMindmapJSON()">Download</button>
+                <button id="loadJSON" class="button" onclick="loadJsonData()">Load Mindmap</button>
+            </div>
         </div>
     </div>
 
     <div id="canvasContainer"></div>
-
     <button id="podcastBtn" title="Start/Stop Podcast" onclick="handlePodcast()">🔊</button>
-
     <div id="infoBox" class="glass">
         <h3 id="infoBoxTitle">Click a node or start the podcast!</h3>
-        <p id="infoBoxContent">The notes or script for the selected node will appear here.</p>
+        <p id="infoBoxContent">The notes for the selected node will appear here.</p>
     </div>
 
     <script>
@@ -324,15 +346,22 @@
             narrationScript = [];
         let voices = [],
             voiceProfile1, voiceProfile2;
-
-        // NEW: Color palette for branches
-        const branchColors = ['#ff6b6b', '#48dbfb', '#1dd1a1', '#feca57', '#ff9f43', '#7ed6df', '#a29bfe', '#55efc4'];
-        // NEW: Language to lang code mapping for TTS
         const langCodeMap = {
             'English': 'en',
             'Hindi': 'hi',
             'Bengali': 'bn'
         };
+
+        /**
+         * Generates a visually distinct color for a branch using HSL color space.
+         * Using the golden angle ensures that subsequent colors are maximally different from previous ones.
+         * @param {number} index - The index of the branch (e.g., 0, 1, 2...).
+         * @returns {string} An HSL color string.
+         */
+        function generateColorForBranch(index) {
+            const hue = (index * 137.5) % 360; // Golden angle for pleasant, distinct distribution
+            return `hsl(${hue}, 70%, 60%)`;
+        }
 
         // --- AI & Panel Logic ---
         function generateWithPerplexity() {
@@ -346,7 +375,6 @@
             const prompt = `Create a comprehensive, educational mindmap as a JSON object on the topic: "${topic}".
 Context: ${description || "Provide a general overview suitable for learners."}
 Language Requirement: The entire output, including all titles, notes, and scripts, MUST be in ${language}.
-
 JSON Requirements:
 1.  **Strict JSON Format:** Adhere to this exact structure for every node.
     {
@@ -364,7 +392,6 @@ JSON Requirements:
     -   **Crucially, the "script" field must be well-written for audio narration in ${language}.**
 3.  **Output:**
     -   Provide **ONLY** the raw JSON object without any explanatory text or markdown code fences.
-
 Start the JSON now:`;
 
             const encodedPrompt = encodeURIComponent(prompt);
@@ -389,10 +416,55 @@ Start the JSON now:`;
                 updateLayout();
                 centerOnRoot();
                 updateInfoBox(mindmap);
+
+                const panel = document.getElementById('jsonPanel');
+                if (!panel.classList.contains('collapsed')) {
+                    togglePanel();
+                }
             } catch (error) {
                 alert('Invalid JSON format even after cleaning. Please check the structure.');
                 console.error('JSON parsing error:', error);
             }
+        }
+
+        // --- JSON Control Functions ---
+        async function pasteAndLoadJSON() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('jsonInput').value = text;
+                loadJsonData();
+            } catch (err) {
+                alert('Failed to read clipboard contents. Your browser might not support this feature or require permission.');
+                console.error('Clipboard read error:', err);
+            }
+        }
+
+        function downloadMindmapJSON() {
+            const jsonText = document.getElementById('jsonInput').value;
+            if (!jsonText.trim()) return alert('Nothing to download!');
+
+            const blob = new Blob([jsonText], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mindmap_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('jsonInput').value = e.target.result;
+                loadJsonData();
+            };
+            reader.readAsText(file);
         }
 
         // --- MindNode Class ---
@@ -414,16 +486,9 @@ Start the JSON now:`;
                 this.height = 0;
                 this.highlighted = false;
 
-                // **NEW: Color Assignment Logic**
-                if (level === 0) {
-                    this.color = '#FFD54F'; // Gold for the root
-                } else if (level === 1) {
-                    // Assign a unique color to each main branch
-                    this.color = branchColors[siblingIndex % branchColors.length];
-                } else {
-                    // Inherit color from the parent
-                    this.color = parent.color;
-                }
+                if (level === 0) this.color = '#FFD54F';
+                else if (level === 1) this.color = generateColorForBranch(siblingIndex);
+                else this.color = parent.color;
 
                 if (data.children && Array.isArray(data.children)) {
                     data.children.forEach((childData, index) => {
@@ -436,18 +501,12 @@ Start the JSON now:`;
             }
             getVisibleNodes() {
                 let nodes = [this];
-                if (this.expanded) {
-                    this.children.forEach(child => {
-                        nodes = nodes.concat(child.getVisibleNodes());
-                    });
-                }
+                if (this.expanded) this.children.forEach(c => nodes = nodes.concat(c.getVisibleNodes()));
                 return nodes;
             }
             getAllNodes() {
                 let nodes = [this];
-                this.children.forEach(child => {
-                    nodes = nodes.concat(child.getAllNodes());
-                });
+                this.children.forEach(c => nodes = nodes.concat(c.getAllNodes()));
                 return nodes;
             }
             update() {
@@ -458,64 +517,55 @@ Start the JSON now:`;
                 push();
                 if (this.highlighted) {
                     fill(this.color);
-                    stroke(255, 255, 255);
+                    stroke(255);
                     strokeWeight(3);
                 } else {
                     fill(25, 25, 40, 200);
-                    stroke(this.color); // Use the node's assigned color
+                    stroke(this.color);
                     strokeWeight(2);
                 }
                 rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8);
-
                 fill(this.highlighted ? 0 : 240);
                 noStroke();
                 textAlign(CENTER, CENTER);
                 textSize(12 + max(0, 3 - this.level) * 2);
                 textStyle(this.level === 0 ? BOLD : NORMAL);
                 text(this.title, this.x, this.y);
-
                 if (this.children.length > 0) {
                     fill(this.color);
-                    let indicator = this.expanded ? '−' : '+';
-                    text(indicator, this.x + this.width / 2 - 12, this.y - this.height / 2 + 12);
+                    text(this.expanded ? '−' : '+', this.x + this.width / 2 - 12, this.y - this.height / 2 + 12);
                 }
                 pop();
             }
             drawConnection() {
                 if (this.parent && this.parent.expanded) {
-                    stroke(this.color); // Line color matches the child's branch color
+                    stroke(this.color);
                     strokeWeight(2);
                     line(this.parent.x, this.parent.y, this.x, this.y);
                 }
             }
             contains(x, y) {
-                return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 &&
-                    y >= this.y - this.height / 2 && y <= this.y + this.height / 2;
+                return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 && y >= this.y - this.height / 2 && y <= this.y + this.height / 2;
             }
         }
 
         // --- Narration & Voice Logic ---
         function handlePodcast() {
-            if (isNarrating) stopNarration();
-            else startNarration();
+            isNarrating ? stopNarration() : startNarration();
         }
 
         function startNarration() {
             if (!mindmap) return alert('Please load a mindmap first.');
             if (!('speechSynthesis' in window)) return alert('Speech synthesis not supported.');
-
             isNarrating = true;
             currentNarrationIndex = 0;
             narrationScript = [];
-
             let speakerCounter = {
                 value: 0
             };
             generateScript(mindmap, speakerCounter);
-
             document.getElementById('podcastBtn').innerHTML = '⏸️';
             document.getElementById('podcastBtn').classList.add('playing');
-
             narrateNext();
         }
 
@@ -535,23 +585,18 @@ Start the JSON now:`;
         }
 
         function narrateNext() {
-            if (!isNarrating || currentNarrationIndex >= narrationScript.length) {
-                return stopNarration();
-            }
+            if (!isNarrating || currentNarrationIndex >= narrationScript.length) return stopNarration();
             const step = narrationScript[currentNarrationIndex];
-
             mindmap.getAllNodes().forEach(n => n.highlighted = false);
             step.node.highlighted = true;
             camera.targetX = step.node.x;
             camera.targetY = step.node.y;
             camera.targetZoom = 1.2;
             updateInfoBox(step.node);
-
             if (step.node.children.length > 0 && !step.node.expanded) {
                 step.node.expanded = true;
                 updateLayout();
             }
-
             const utterance = new SpeechSynthesisUtterance(step.text);
             const voice = step.speaker === 0 ? voiceProfile1 : voiceProfile2;
             if (voice && voice.voice) {
@@ -562,7 +607,6 @@ Start the JSON now:`;
                 utterance.pitch = step.speaker === 0 ? 1.2 : 0.8;
                 utterance.rate = 1.0;
             }
-
             utterance.onend = () => {
                 currentNarrationIndex++;
                 setTimeout(narrateNext, 800);
@@ -571,7 +615,6 @@ Start the JSON now:`;
                 console.error('Speech error:', e);
                 stopNarration();
             };
-
             speechSynthesis.speak(utterance);
         }
 
@@ -588,16 +631,11 @@ Start the JSON now:`;
             if (!voices.length) return;
             const selectedLang = document.getElementById('languageSelector').value;
             const langCode = langCodeMap[selectedLang] || 'en';
-
             const langVoices = voices.filter(v => v.lang.startsWith(langCode));
-
             let femaleVoice = langVoices.find(v => v.gender === 'female' || v.name.includes('Female'));
             let maleVoice = langVoices.find(v => v.gender === 'male' || v.name.includes('Male'));
-
-            // Fallback strategy
             if (!femaleVoice) femaleVoice = langVoices[0];
             if (!maleVoice) maleVoice = langVoices[1] || femaleVoice;
-
             voiceProfile1 = {
                 voice: femaleVoice,
                 pitch: 1.2,
@@ -608,8 +646,6 @@ Start the JSON now:`;
                 pitch: 0.8,
                 rate: 1
             };
-
-            // Final fallback to English if no voices for the selected language are found
             if (!voiceProfile1.voice) {
                 const enVoices = voices.filter(v => v.lang.startsWith('en'));
                 voiceProfile1 = {
@@ -629,6 +665,7 @@ Start the JSON now:`;
         function setup() {
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('canvasContainer');
+            document.getElementById('uploadInput').addEventListener('change', handleFileUpload);
             loadDefaultExample();
             speechSynthesis.onvoiceschanged = () => {
                 voices = speechSynthesis.getVoices();
@@ -643,40 +680,38 @@ Start the JSON now:`;
                 "notes": "Core concepts for every programmer.",
                 "script": "Welcome! Let's explore the fundamentals of programming, the building blocks of all software.",
                 "children": [{
-                        "id": "data_structures",
-                        "title": "Data Structures",
-                        "notes": "Methods for organizing data.",
-                        "script": "First up, Data Structures. Think of these as special containers, each designed to store and organize data in an efficient way.",
-                        "children": [{
-                                "id": "arrays",
-                                "title": "Arrays",
-                                "script": "The simplest is an Array. It's like a numbered list of boxes, perfect for quickly accessing items if you know their position."
-                            },
-                            {
-                                "id": "linked_lists",
-                                "title": "Linked Lists",
-                                "script": "Then we have Linked Lists. Instead of a fixed list, each item points to the next, making it super flexible to add or remove elements."
-                            }
-                        ]
-                    },
-                    {
-                        "id": "algorithms",
-                        "title": "Algorithms",
-                        "notes": "Step-by-step procedures for calculations.",
-                        "script": "Next, let's talk about Algorithms. These are like recipes: a set of rules to follow to solve a specific problem.",
-                        "children": [{
-                                "id": "sorting",
-                                "title": "Sorting",
-                                "script": "A common task is Sorting. Algorithms like 'Bubble Sort' or 'Quick Sort' help us arrange data from smallest to largest, or alphabetically."
-                            },
-                            {
-                                "id": "searching",
-                                "title": "Searching",
-                                "script": "And what about Searching? These algorithms are like detectives, helping us efficiently find a specific piece of data in a massive collection."
-                            }
-                        ]
-                    }
-                ]
+                    "id": "data_structures",
+                    "title": "Data Structures",
+                    "notes": "Methods for organizing data.",
+                    "script": "First up, Data Structures. Think of these as special containers, each designed to store and organize data in an efficient way.",
+                    "children": [{
+                        "id": "arrays",
+                        "title": "Arrays",
+                        "notes": "A simple list of items.",
+                        "script": "The simplest is an Array. It's like a numbered list of boxes, perfect for quickly accessing items if you know their position."
+                    }, {
+                        "id": "linked_lists",
+                        "title": "Linked Lists",
+                        "notes": "A flexible chain of items.",
+                        "script": "Then we have Linked Lists. Instead of a fixed list, each item points to the next, making it super flexible to add or remove elements."
+                    }]
+                }, {
+                    "id": "algorithms",
+                    "title": "Algorithms",
+                    "notes": "Step-by-step procedures for calculations.",
+                    "script": "Next, let's talk about Algorithms. These are like recipes: a set of rules to follow to solve a specific problem.",
+                    "children": [{
+                        "id": "sorting",
+                        "title": "Sorting",
+                        "notes": "Arranging data in order.",
+                        "script": "A common task is Sorting. Algorithms like 'Bubble Sort' or 'Quick Sort' help us arrange data from smallest to largest, or alphabetically."
+                    }, {
+                        "id": "searching",
+                        "title": "Searching",
+                        "notes": "Finding a specific item.",
+                        "script": "And what about Searching? These algorithms are like detectives, helping us efficiently find a specific piece of data in a massive collection."
+                    }]
+                }]
             };
             document.getElementById('jsonInput').value = JSON.stringify(defaultJson, null, 2);
             loadJsonData();
@@ -736,60 +771,29 @@ Start the JSON now:`;
             btn.innerHTML = panel.classList.contains('collapsed') ? '☰' : '✕';
         }
 
-        function centerOnRoot() {
-            if (mindmap) {
-                camera.targetX = mindmap.x;
-                camera.targetY = mindmap.y;
-                camera.targetZoom = 1;
-            }
-        }
-
         function updateInfoBox(node) {
-            const box = document.getElementById('infoBox');
             const titleEl = document.getElementById('infoBoxTitle');
             const contentEl = document.getElementById('infoBoxContent');
             if (node) {
                 titleEl.textContent = node.title;
-                contentEl.textContent = node.script || node.notes || "No details available for this node.";
-                box.classList.add('show');
+                contentEl.textContent = node.notes || "No notes available for this node.";
+                document.getElementById('infoBox').classList.add('show');
             } else {
-                box.classList.remove('show');
+                document.getElementById('infoBox').classList.remove('show');
             }
-        }
-
-        function screenToWorld(sx, sy) {
-            return {
-                x: camera.x + (sx - width / 2) / camera.zoom,
-                y: camera.y + (sy - height / 2) / camera.zoom
-            };
-        }
-
-        function getNodeAt(x, y) {
-            if (!mindmap) return null;
-            let visibleNodes = mindmap.getVisibleNodes();
-            for (let i = visibleNodes.length - 1; i >= 0; i--) {
-                if (visibleNodes[i].contains(x, y)) return visibleNodes[i];
-            }
-            return null;
         }
 
         function mousePressed() {
-            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
+            if (mouseX < 380 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
             let worldPos = screenToWorld(mouseX, mouseY);
             let clickedNode = getNodeAt(worldPos.x, worldPos.y);
+
             if (clickedNode) {
-                if (isNarrating) {
-                    const newIndex = narrationScript.findIndex(step => step.node.id === clickedNode.id);
-                    if (newIndex > -1) {
-                        speechSynthesis.cancel();
-                        currentNarrationIndex = newIndex;
-                        narrateNext();
-                    }
-                } else {
-                    clickedNode.toggle();
-                    updateLayout();
-                    updateInfoBox(clickedNode);
-                }
+                // REMOVED: The check for `isNarrating` is gone.
+                // A click on a node now *always* performs the same action: toggle and update.
+                clickedNode.toggle();
+                updateLayout();
+                updateInfoBox(clickedNode);
             } else {
                 isDragging = true;
                 lastMouseX = mouseX;
@@ -813,7 +817,7 @@ Start the JSON now:`;
         }
 
         function mouseWheel(event) {
-            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return false;
+            if (mouseX < 380 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return false;
             let zoomFactor = event.delta > 0 ? 0.9 : 1.1;
             let newZoom = constrain(camera.targetZoom * zoomFactor, 0.2, 3);
             let worldPos = screenToWorld(mouseX, mouseY);
@@ -826,6 +830,29 @@ Start the JSON now:`;
         function windowResized() {
             resizeCanvas(windowWidth, windowHeight);
             updateLayout();
+        }
+
+        function centerOnRoot() {
+            if (mindmap) {
+                camera.targetX = mindmap.x;
+                camera.targetY = mindmap.y;
+                camera.targetZoom = 1;
+            }
+        }
+
+        function screenToWorld(sx, sy) {
+            return {
+                x: camera.x + (sx - width / 2) / camera.zoom,
+                y: camera.y + (sy - height / 2) / camera.zoom
+            };
+        }
+
+        function getNodeAt(x, y) {
+            if (!mindmap) return null;
+            let visibleNodes = mindmap.getVisibleNodes();
+            for (let i = visibleNodes.length - 1; i >= 0; i--)
+                if (visibleNodes[i].contains(x, y)) return visibleNodes[i];
+            return null;
         }
     </script>
 </body>
