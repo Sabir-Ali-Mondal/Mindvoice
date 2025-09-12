@@ -18,14 +18,14 @@
             --primary-color: #007bff;
             --glow-color: rgba(0, 123, 255, 0.7);
             --text-color: #f0f0f0;
-            --glass-bg: rgba(25, 25, 40, 0.3);
+            --glass-bg: rgba(25, 25, 40, 0.6);
             --glass-border: rgba(255, 255, 255, 0.15);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-            color: #f0f0f0;
+            color: var(--text-color);
             overflow: hidden;
             height: 100vh;
         }
@@ -33,9 +33,35 @@
         .glass {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        #togglePanelBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            z-index: 101;
+            background: rgba(255, 213, 79, 0.8);
+            border: none;
+            border-radius: 50%;
+            color: #111;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 213, 79, 0.3);
+        }
+
+        #togglePanelBtn:hover {
+            background: rgba(255, 213, 79, 1);
+            transform: scale(1.1);
         }
 
         #jsonPanel {
@@ -45,21 +71,23 @@
             width: 380px;
             height: calc(100vh - 40px);
             z-index: 100;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             flex-direction: column;
+            transform: translateX(0);
         }
 
         #jsonPanel.collapsed {
-            transform: translateX(-360px);
+            transform: translateX(calc(-100% - 20px));
         }
 
         .panel-header {
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         .panel-title {
@@ -68,27 +96,13 @@
             color: #FFD54F;
         }
 
-        #togglePanel {
-            background: none;
-            border: none;
-            color: #f0f0f0;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        #togglePanel:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
         .panel-content {
             flex: 1;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            overflow-y: auto;
         }
 
         .topic-generator {
@@ -96,7 +110,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 15px;
         }
 
         .topic-generator h3 {
@@ -106,7 +119,8 @@
             font-weight: 600;
         }
 
-        #topicInput {
+        .input-field,
+        #languageSelector {
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -118,24 +132,41 @@
             margin-bottom: 10px;
         }
 
-        #topicInput:focus {
+        #languageSelector {
+            cursor: pointer;
+        }
+
+        #languageSelector option {
+            background: #1a1a2e;
+        }
+
+        .input-field:focus,
+        #languageSelector:focus {
             border-color: #FFD54F;
             box-shadow: 0 0 0 2px rgba(255, 213, 79, 0.2);
         }
 
-        #generateBtn {
+        #descriptionInput {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .button {
             width: 100%;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 6px;
-            font-size: 13px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: linear-gradient(45deg, #8B5CF6, #A855F7);
-            color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        #generateBtn {
+            background: linear-gradient(45deg, #8B5CF6, #A855F7);
+            color: #fff;
         }
 
         #generateBtn:hover {
@@ -156,23 +187,6 @@
             outline: none;
         }
 
-        #jsonInput:focus {
-            border-color: #FFD54F;
-            box-shadow: 0 0 0 2px rgba(255, 213, 79, 0.2);
-        }
-
-        .button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         #loadJSON {
             background: linear-gradient(45deg, #FFD54F, #FF8C00);
             color: #000;
@@ -183,7 +197,7 @@
             box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
         }
 
-        .control-button {
+        #podcastBtn {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -191,7 +205,6 @@
             height: 60px;
             border-radius: 50%;
             background: linear-gradient(45deg, #FFD54F, #FF8C00);
-            backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
             color: #fff;
@@ -202,33 +215,49 @@
             justify-content: center;
             transition: all 0.3s ease;
             z-index: 1000;
-            pointer-events: all;
         }
 
-        .control-button:hover {
-            background: linear-gradient(45deg, #fde06a, #e86203);
+        #podcastBtn:hover {
             transform: scale(1.1);
         }
 
-        .control-button.playing {
+        #podcastBtn.playing {
             background: linear-gradient(45deg, #FF6B6B, #EE5A52);
-            color: #fff;
         }
 
-        #tooltip {
+        #infoBox {
             position: fixed;
-            max-width: 250px;
-            padding: 10px 15px;
-            font-size: 13px;
-            z-index: 1000;
-            pointer-events: none;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            min-height: 80px;
+            z-index: 999;
+            padding: 15px 25px;
             opacity: 0;
-            transition: opacity 0.2s ease;
-            line-height: 1.4;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        #tooltip.show {
+        #infoBox.show {
             opacity: 1;
+            pointer-events: all;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #infoBox h3 {
+            color: #FFD54F;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        #infoBox p {
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         #canvasContainer {
@@ -239,221 +268,45 @@
             height: 100%;
             z-index: 1;
         }
-
-        .collapse-indicator {
-            position: fixed;
-            top: 50%;
-            left: 5px;
-            transform: translateY(-50%);
-            width: 30px;
-            height: 60px;
-            background: rgba(255, 213, 79, 0.8);
-            border-radius: 0 15px 15px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 99;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #jsonPanel.collapsed+.collapse-indicator {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .collapse-indicator:hover {
-            background: rgba(255, 213, 79, 1);
-            width: 35px;
-        }
     </style>
 </head>
 
 <body>
-    <div id="jsonPanel" class="glass">
+    <button id="togglePanelBtn" onclick="togglePanel()">☰</button>
+
+    <div id="jsonPanel" class="glass collapsed">
         <div class="panel-header">
             <div class="panel-title">Mindmap Generator</div>
-            <button id="togglePanel" onclick="togglePanel()">←</button>
         </div>
         <div class="panel-content">
             <div class="topic-generator">
                 <h3>🚀 Generate with AI</h3>
-                <input type="text" id="topicInput" placeholder="Enter any topic (e.g., Machine Learning, DNA Replication, Cooking)" />
-                <button id="generateBtn" onclick="generateWithPerplexity()">Generate with Perplexity AI</button>
+                <input type="text" id="topicInput" class="input-field" placeholder="Topic (e.g., Photosynthesis)" />
+                <textarea id="descriptionInput" class="input-field" placeholder="Description (e.g., Explain for a 10th-grade class)"></textarea>
+                <select id="languageSelector" onchange="updateVoiceProfiles()">
+                    <option value="English" selected>English</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Bengali">Bengali</option>
+                </select>
+                <button id="generateBtn" class="button" onclick="generateWithPerplexity()">Generate with Perplexity AI</button>
             </div>
 
-            <textarea id="jsonInput" placeholder='Or paste your JSON here manually...
-
-Example:
-{
-  "id": "root",
-  "title": "Your Topic",
-  "notes": "Description here",
-  "children": [
-    {
-      "id": "branch1",
-      "title": "Main Branch",
-      "notes": "Branch description",
-      "children": []
-    }
-  ]
-}'></textarea>
+            <textarea id="jsonInput" placeholder='Paste AI response here. The tool will automatically find and fix the JSON.'></textarea>
             <button id="loadJSON" class="button" onclick="loadJsonData()">Load Mindmap</button>
         </div>
     </div>
 
-    <div class="collapse-indicator" onclick="showPanel()">→</div>
     <div id="canvasContainer"></div>
 
-    <!-- FIXED: Only podcast button, no replay button -->
-    <button id="podcast" class="control-button" title="Start/Stop Podcast" onclick="handlePodcast()">🔊</button>
+    <button id="podcastBtn" title="Start/Stop Podcast" onclick="handlePodcast()">🔊</button>
 
-    <div id="tooltip" class="glass"></div>
+    <div id="infoBox" class="glass">
+        <h3 id="infoBoxTitle">Click a node or start the podcast!</h3>
+        <p id="infoBoxContent">The notes or script for the selected node will appear here.</p>
+    </div>
 
     <script>
-        function generateWithPerplexity() {
-            const topic = document.getElementById('topicInput').value.trim();
-            if (!topic) {
-                alert('Please enter a topic first!');
-                return;
-            }
-
-            const prompt = `Create a detailed mindmap JSON structure for the topic: "${topic}".
-
-Requirements:
-1. Use exactly this JSON format:
-{
-  "id": "unique_id",
-  "title": "Node Title", 
-  "notes": "Detailed explanation of this concept (1-2 sentences)",
-  "children": []
-}
-
-2. Structure Guidelines:
-   - Root node should be the main topic
-   - Create 3-5 main branches (children of root)
-   - Each main branch should have 2-4 sub-branches
-   - Go 3-4 levels deep maximum
-   - Use snake_case for all id fields (e.g., "machine_learning", "data_structures")
-   - Make titles concise but descriptive
-   - Include informative notes for each node suitable for audio narration
-   - Ensure each id is unique across the entire structure
-
-3. Content Guidelines:
-   - Cover the most important aspects of "${topic}"
-   - Include both theoretical concepts and practical applications
-   - Make it educational and comprehensive
-   - Notes should explain concepts clearly in 1-2 sentences
-
-Please generate the complete JSON structure following these exact requirements. Provide only the JSON code, no additional text.`;
-
-            const encodedPrompt = encodeURIComponent(prompt);
-            const perplexityUrl = `https://www.perplexity.ai/search?q=${encodedPrompt}`;
-
-            window.open(perplexityUrl, '_blank');
-            console.log(`Generated Perplexity URL for topic: ${topic}`);
-        }
-
-        class MindNode {
-            constructor(data, parent = null, level = 0) {
-                this.id = data.id;
-                this.title = data.title || '';
-                this.notes = data.notes || '';
-                this.children = [];
-                this.parent = parent;
-                this.level = level;
-                this.expanded = level === 0;
-                this.x = 0;
-                this.y = 0;
-                this.targetX = 0;
-                this.targetY = 0;
-                this.width = 0;
-                this.height = 0;
-                this.highlighted = false;
-
-                if (data.children && Array.isArray(data.children)) {
-                    data.children.forEach(childData => {
-                        this.children.push(new MindNode(childData, this, level + 1));
-                    });
-                }
-            }
-
-            toggle() {
-                this.expanded = !this.expanded;
-            }
-
-            getVisibleNodes() {
-                let nodes = [this];
-                if (this.expanded) {
-                    this.children.forEach(child => {
-                        nodes = nodes.concat(child.getVisibleNodes());
-                    });
-                }
-                return nodes;
-            }
-
-            getAllNodes() {
-                let nodes = [this];
-                this.children.forEach(child => {
-                    nodes = nodes.concat(child.getAllNodes());
-                });
-                return nodes;
-            }
-
-            update() {
-                this.x = lerp(this.x, this.targetX, 0.1);
-                this.y = lerp(this.y, this.targetY, 0.1);
-            }
-
-            draw() {
-                push();
-                if (this.highlighted) {
-                    fill(255, 213, 79, 200);
-                    stroke(255, 140, 0);
-                    strokeWeight(3);
-                } else {
-                    fill(25, 25, 40, 180);
-                    stroke(255, 255, 255, 100);
-                    strokeWeight(2);
-                }
-
-                rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8);
-
-                fill(240, 240, 240);
-                noStroke();
-                textAlign(CENTER, CENTER);
-                textSize(12 + (3 - this.level) * 2);
-                textStyle(this.level === 0 ? BOLD : NORMAL);
-                text(this.title, this.x, this.y);
-
-                if (this.children.length > 0) {
-                    fill(255, 213, 79);
-                    textAlign(CENTER, CENTER);
-                    textSize(10);
-                    let indicator = this.expanded ? '−' : '+';
-                    text(indicator, this.x + this.width / 2 - 10, this.y - this.height / 2 + 10);
-                }
-                pop();
-            }
-
-            drawConnection() {
-                if (this.parent && this.parent.expanded) {
-                    stroke(255, 255, 255, 100);
-                    strokeWeight(2);
-                    line(this.parent.x + this.parent.width / 2, this.parent.y,
-                        this.x - this.width / 2, this.y);
-                }
-            }
-
-            contains(x, y) {
-                return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 &&
-                    y >= this.y - this.height / 2 && y <= this.y + this.height / 2;
-            }
-        }
-
-        // Global variables
+        // --- Global Variables ---
         let mindmap = null;
         let camera = {
             x: 0,
@@ -463,137 +316,236 @@ Please generate the complete JSON structure following these exact requirements. 
             targetY: 0,
             targetZoom: 1
         };
-        let isDragging = false;
-        let lastMouseX = 0,
+        let isDragging = false,
+            lastMouseX = 0,
             lastMouseY = 0;
-        let hoveredNode = null;
-        let isNarrating = false;
-        let currentNarrationIndex = 0;
-        let narrationScript = [];
-        let availableVoices = [];
+        let isNarrating = false,
+            currentNarrationIndex = 0,
+            narrationScript = [];
+        let voices = [],
+            voiceProfile1, voiceProfile2;
 
-        function togglePanel() {
-            const panel = document.getElementById('jsonPanel');
-            const btn = document.getElementById('togglePanel');
-            panel.classList.toggle('collapsed');
-            btn.innerHTML = panel.classList.contains('collapsed') ? '→' : '←';
-        }
+        // NEW: Color palette for branches
+        const branchColors = ['#ff6b6b', '#48dbfb', '#1dd1a1', '#feca57', '#ff9f43', '#7ed6df', '#a29bfe', '#55efc4'];
+        // NEW: Language to lang code mapping for TTS
+        const langCodeMap = {
+            'English': 'en',
+            'Hindi': 'hi',
+            'Bengali': 'bn'
+        };
 
-        function showPanel() {
-            const panel = document.getElementById('jsonPanel');
-            const btn = document.getElementById('togglePanel');
-            panel.classList.remove('collapsed');
-            btn.innerHTML = '←';
-        }
+        // --- AI & Panel Logic ---
+        function generateWithPerplexity() {
+            const topic = document.getElementById('topicInput').value.trim();
+            const description = document.getElementById('descriptionInput').value.trim();
+            const language = document.getElementById('languageSelector').value;
 
-        function resetMindmap() {
-            if (!mindmap) return;
+            if (!topic) return alert('Please enter a topic first!');
+            document.getElementById('jsonInput').value = '';
 
-            let allNodes = mindmap.getAllNodes();
-            allNodes.forEach(node => {
-                node.expanded = node.level === 0;
-                node.highlighted = false;
-            });
+            const prompt = `Create a comprehensive, educational mindmap as a JSON object on the topic: "${topic}".
+Context: ${description || "Provide a general overview suitable for learners."}
+Language Requirement: The entire output, including all titles, notes, and scripts, MUST be in ${language}.
 
-            updateLayout();
-            centerOnRoot();
-        }
+JSON Requirements:
+1.  **Strict JSON Format:** Adhere to this exact structure for every node.
+    {
+      "id": "unique_snake_case_id",
+      "title": "Concise Node Title",
+      "notes": "A brief, one-sentence technical summary of the concept.",
+      "script": "An engaging, conversational script for a podcast-style narration. Explain the concept clearly in 2-3 sentences as if talking to a student. Make it easy to understand.",
+      "children": [ /* other nodes */ ]
+    }
+2.  **Content Guidelines:**
+    -   The root node must be the main topic "${topic}".
+    -   Create 3-5 main branches from the root.
+    -   Go 3-4 levels deep to provide substantial detail.
+    -   IDs must be unique and use snake_case.
+    -   **Crucially, the "script" field must be well-written for audio narration in ${language}.**
+3.  **Output:**
+    -   Provide **ONLY** the raw JSON object without any explanatory text or markdown code fences.
 
-        function handlePodcast() {
-            console.log('Podcast button clicked');
-            if (isNarrating) {
-                stopNarration();
-            } else {
-                startNarration();
-            }
+Start the JSON now:`;
+
+            const encodedPrompt = encodeURIComponent(prompt);
+            const perplexityUrl = `https://www.perplexity.ai/search?q=${encodedPrompt}`;
+            window.open(perplexityUrl, '_blank');
         }
 
         function loadJsonData() {
-            try {
-                const jsonText = document.getElementById('jsonInput').value.trim();
-                if (!jsonText) {
-                    alert('Please enter JSON data first.');
-                    return;
-                }
+            let jsonText = document.getElementById('jsonInput').value.trim();
+            if (!jsonText) return alert('JSON input is empty!');
 
-                const data = JSON.parse(jsonText);
+            const startIndex = jsonText.indexOf('{');
+            const endIndex = jsonText.lastIndexOf('}');
+            if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+                return alert('Could not find a valid JSON object in the input.');
+            }
+            const cleanJsonText = jsonText.substring(startIndex, endIndex + 1);
+
+            try {
+                const data = JSON.parse(cleanJsonText);
                 mindmap = new MindNode(data);
                 updateLayout();
                 centerOnRoot();
-                console.log('JSON loaded successfully');
-
+                updateInfoBox(mindmap);
             } catch (error) {
+                alert('Invalid JSON format even after cleaning. Please check the structure.');
                 console.error('JSON parsing error:', error);
-                alert('Invalid JSON format. Please check your input.');
             }
+        }
+
+        // --- MindNode Class ---
+        class MindNode {
+            constructor(data, parent = null, level = 0, siblingIndex = 0) {
+                this.id = data.id;
+                this.title = data.title || '';
+                this.notes = data.notes || '';
+                this.script = data.script || '';
+                this.children = [];
+                this.parent = parent;
+                this.level = level;
+                this.expanded = level < 2;
+                this.x = 0;
+                this.y = 0;
+                this.targetX = 0;
+                this.targetY = 0;
+                this.width = 0;
+                this.height = 0;
+                this.highlighted = false;
+
+                // **NEW: Color Assignment Logic**
+                if (level === 0) {
+                    this.color = '#FFD54F'; // Gold for the root
+                } else if (level === 1) {
+                    // Assign a unique color to each main branch
+                    this.color = branchColors[siblingIndex % branchColors.length];
+                } else {
+                    // Inherit color from the parent
+                    this.color = parent.color;
+                }
+
+                if (data.children && Array.isArray(data.children)) {
+                    data.children.forEach((childData, index) => {
+                        this.children.push(new MindNode(childData, this, level + 1, index));
+                    });
+                }
+            }
+            toggle() {
+                this.expanded = !this.expanded;
+            }
+            getVisibleNodes() {
+                let nodes = [this];
+                if (this.expanded) {
+                    this.children.forEach(child => {
+                        nodes = nodes.concat(child.getVisibleNodes());
+                    });
+                }
+                return nodes;
+            }
+            getAllNodes() {
+                let nodes = [this];
+                this.children.forEach(child => {
+                    nodes = nodes.concat(child.getAllNodes());
+                });
+                return nodes;
+            }
+            update() {
+                this.x = lerp(this.x, this.targetX, 0.1);
+                this.y = lerp(this.y, this.targetY, 0.1);
+            }
+            draw() {
+                push();
+                if (this.highlighted) {
+                    fill(this.color);
+                    stroke(255, 255, 255);
+                    strokeWeight(3);
+                } else {
+                    fill(25, 25, 40, 200);
+                    stroke(this.color); // Use the node's assigned color
+                    strokeWeight(2);
+                }
+                rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8);
+
+                fill(this.highlighted ? 0 : 240);
+                noStroke();
+                textAlign(CENTER, CENTER);
+                textSize(12 + max(0, 3 - this.level) * 2);
+                textStyle(this.level === 0 ? BOLD : NORMAL);
+                text(this.title, this.x, this.y);
+
+                if (this.children.length > 0) {
+                    fill(this.color);
+                    let indicator = this.expanded ? '−' : '+';
+                    text(indicator, this.x + this.width / 2 - 12, this.y - this.height / 2 + 12);
+                }
+                pop();
+            }
+            drawConnection() {
+                if (this.parent && this.parent.expanded) {
+                    stroke(this.color); // Line color matches the child's branch color
+                    strokeWeight(2);
+                    line(this.parent.x, this.parent.y, this.x, this.y);
+                }
+            }
+            contains(x, y) {
+                return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 &&
+                    y >= this.y - this.height / 2 && y <= this.y + this.height / 2;
+            }
+        }
+
+        // --- Narration & Voice Logic ---
+        function handlePodcast() {
+            if (isNarrating) stopNarration();
+            else startNarration();
         }
 
         function startNarration() {
-            if (!mindmap) {
-                alert('Please load a mindmap first.');
-                return;
-            }
-
-            if (!('speechSynthesis' in window)) {
-                alert('Speech synthesis not supported in this browser.');
-                return;
-            }
-
-            console.log('Starting narration...');
-
-            // Reset visuals first
-            resetMindmap();
+            if (!mindmap) return alert('Please load a mindmap first.');
+            if (!('speechSynthesis' in window)) return alert('Speech synthesis not supported.');
 
             isNarrating = true;
             currentNarrationIndex = 0;
-
             narrationScript = [];
-            generateScript(mindmap, 0);
 
-            console.log('Generated script with', narrationScript.length, 'items');
+            let speakerCounter = {
+                value: 0
+            };
+            generateScript(mindmap, speakerCounter);
 
-            // FIXED: Use classList.add instead of addClass
-            const podcastBtn = document.getElementById('podcast');
-            podcastBtn.innerHTML = '⏸️';
-            podcastBtn.classList.add('playing');
+            document.getElementById('podcastBtn').innerHTML = '⏸️';
+            document.getElementById('podcastBtn').classList.add('playing');
 
-            setTimeout(narrateNext, 500);
+            narrateNext();
         }
 
-        function generateScript(node, speaker) {
-            let text = node.title;
-            if (node.notes) {
-                text += '. ' + node.notes;
-            }
-
-            narrationScript.push({
-                text: text,
-                node: node,
-                speaker: speaker % 2
-            });
-
-            if (node.children && node.children.length > 0) {
-                node.children.forEach(child => {
-                    generateScript(child, speaker + 1);
+        function generateScript(node, speakerCounter) {
+            let text = node.script || `${node.title}. ${node.notes}`;
+            if (text.trim().length > 1) {
+                narrationScript.push({
+                    text,
+                    node,
+                    speaker: speakerCounter.value % 2
                 });
+                speakerCounter.value++;
+            }
+            if (node.expanded && node.children.length > 0) {
+                node.children.forEach(child => generateScript(child, speakerCounter));
             }
         }
 
         function narrateNext() {
             if (!isNarrating || currentNarrationIndex >= narrationScript.length) {
-                stopNarration();
-                return;
+                return stopNarration();
             }
-
             const step = narrationScript[currentNarrationIndex];
-            console.log('Narrating step', currentNarrationIndex + 1, ':', step.text);
 
             mindmap.getAllNodes().forEach(n => n.highlighted = false);
             step.node.highlighted = true;
-
             camera.targetX = step.node.x;
             camera.targetY = step.node.y;
             camera.targetZoom = 1.2;
+            updateInfoBox(step.node);
 
             if (step.node.children.length > 0 && !step.node.expanded) {
                 step.node.expanded = true;
@@ -601,140 +553,187 @@ Please generate the complete JSON structure following these exact requirements. 
             }
 
             const utterance = new SpeechSynthesisUtterance(step.text);
-            utterance.rate = 0.8;
-            utterance.pitch = step.speaker === 0 ? 1.1 : 0.9;
+            const voice = step.speaker === 0 ? voiceProfile1 : voiceProfile2;
+            if (voice && voice.voice) {
+                utterance.voice = voice.voice;
+                utterance.pitch = voice.pitch;
+                utterance.rate = voice.rate;
+            } else {
+                utterance.pitch = step.speaker === 0 ? 1.2 : 0.8;
+                utterance.rate = 1.0;
+            }
 
-            utterance.onend = function() {
+            utterance.onend = () => {
                 currentNarrationIndex++;
                 setTimeout(narrateNext, 800);
             };
-
-            utterance.onerror = function(e) {
+            utterance.onerror = (e) => {
                 console.error('Speech error:', e);
-                currentNarrationIndex++;
-                setTimeout(narrateNext, 500);
+                stopNarration();
             };
 
             speechSynthesis.speak(utterance);
         }
 
         function stopNarration() {
-            console.log('Stopping narration');
             isNarrating = false;
             speechSynthesis.cancel();
-
-            if (mindmap) {
-                mindmap.getAllNodes().forEach(node => node.highlighted = false);
-            }
-
-            // FIXED: Use classList.remove instead of removeClass
-            const podcastBtn = document.getElementById('podcast');
-            podcastBtn.innerHTML = '🔊';
-            podcastBtn.classList.remove('playing');
+            if (mindmap) mindmap.getAllNodes().forEach(node => node.highlighted = false);
+            updateInfoBox(mindmap);
+            document.getElementById('podcastBtn').innerHTML = '🔊';
+            document.getElementById('podcastBtn').classList.remove('playing');
         }
 
+        function updateVoiceProfiles() {
+            if (!voices.length) return;
+            const selectedLang = document.getElementById('languageSelector').value;
+            const langCode = langCodeMap[selectedLang] || 'en';
+
+            const langVoices = voices.filter(v => v.lang.startsWith(langCode));
+
+            let femaleVoice = langVoices.find(v => v.gender === 'female' || v.name.includes('Female'));
+            let maleVoice = langVoices.find(v => v.gender === 'male' || v.name.includes('Male'));
+
+            // Fallback strategy
+            if (!femaleVoice) femaleVoice = langVoices[0];
+            if (!maleVoice) maleVoice = langVoices[1] || femaleVoice;
+
+            voiceProfile1 = {
+                voice: femaleVoice,
+                pitch: 1.2,
+                rate: 1
+            };
+            voiceProfile2 = {
+                voice: maleVoice,
+                pitch: 0.8,
+                rate: 1
+            };
+
+            // Final fallback to English if no voices for the selected language are found
+            if (!voiceProfile1.voice) {
+                const enVoices = voices.filter(v => v.lang.startsWith('en'));
+                voiceProfile1 = {
+                    voice: enVoices.find(v => v.gender === 'female'),
+                    pitch: 1.2,
+                    rate: 1
+                };
+                voiceProfile2 = {
+                    voice: enVoices.find(v => v.gender === 'male'),
+                    pitch: 0.8,
+                    rate: 1
+                };
+            }
+        }
+
+        // --- p5.js Setup & Drawing ---
         function setup() {
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('canvasContainer');
-
-            console.log('Setup complete!');
             loadDefaultExample();
-
-            setTimeout(() => {
-                availableVoices = speechSynthesis.getVoices();
-                console.log('Voices loaded:', availableVoices.length);
-            }, 1000);
+            speechSynthesis.onvoiceschanged = () => {
+                voices = speechSynthesis.getVoices();
+                updateVoiceProfiles();
+            };
         }
 
         function loadDefaultExample() {
-            let defaultJson = {
+            const defaultJson = {
                 "id": "root",
                 "title": "Programming Fundamentals",
-                "notes": "Core concepts every programmer should master",
+                "notes": "Core concepts for every programmer.",
+                "script": "Welcome! Let's explore the fundamentals of programming, the building blocks of all software.",
                 "children": [{
                         "id": "data_structures",
                         "title": "Data Structures",
-                        "notes": "Ways to organize and store data efficiently",
+                        "notes": "Methods for organizing data.",
+                        "script": "First up, Data Structures. Think of these as special containers, each designed to store and organize data in an efficient way.",
                         "children": [{
                                 "id": "arrays",
                                 "title": "Arrays",
-                                "notes": "Contiguous memory allocation for elements"
+                                "script": "The simplest is an Array. It's like a numbered list of boxes, perfect for quickly accessing items if you know their position."
                             },
                             {
                                 "id": "linked_lists",
                                 "title": "Linked Lists",
-                                "notes": "Dynamic nodes connected by pointers"
+                                "script": "Then we have Linked Lists. Instead of a fixed list, each item points to the next, making it super flexible to add or remove elements."
                             }
                         ]
                     },
                     {
                         "id": "algorithms",
                         "title": "Algorithms",
-                        "notes": "Step-by-step procedures for solving problems",
+                        "notes": "Step-by-step procedures for calculations.",
+                        "script": "Next, let's talk about Algorithms. These are like recipes: a set of rules to follow to solve a specific problem.",
                         "children": [{
                                 "id": "sorting",
                                 "title": "Sorting",
-                                "notes": "Arranging data in specific order"
+                                "script": "A common task is Sorting. Algorithms like 'Bubble Sort' or 'Quick Sort' help us arrange data from smallest to largest, or alphabetically."
                             },
                             {
                                 "id": "searching",
                                 "title": "Searching",
-                                "notes": "Finding specific elements in datasets"
+                                "script": "And what about Searching? These algorithms are like detectives, helping us efficiently find a specific piece of data in a massive collection."
                             }
                         ]
                     }
                 ]
             };
-
-            mindmap = new MindNode(defaultJson);
-            updateLayout();
-            centerOnRoot();
+            document.getElementById('jsonInput').value = JSON.stringify(defaultJson, null, 2);
+            loadJsonData();
         }
 
         function updateLayout() {
             if (!mindmap) return;
+            const ySpacing = 60,
+                xSpacing = 220;
 
+            function layout(node, x, y) {
+                node.targetX = x;
+                node.targetY = y;
+                textSize(12 + max(0, 3 - node.level) * 2);
+                node.width = max(textWidth(node.title) + 40, 100);
+                node.height = 50;
+                if (!node.expanded || node.children.length === 0) return ySpacing;
+                let childrenHeight = node.children.reduce((acc, child) => acc + getSubtreeHeight(child), 0);
+                let currentY = y - childrenHeight / 2;
+                node.children.forEach(child => {
+                    let childHeight = getSubtreeHeight(child);
+                    layout(child, x + xSpacing, currentY + childHeight / 2);
+                    currentY += childHeight;
+                });
+                return childrenHeight;
+            }
+
+            function getSubtreeHeight(node) {
+                if (!node.expanded || node.children.length === 0) return ySpacing;
+                return node.children.reduce((acc, child) => acc + getSubtreeHeight(child), 0);
+            }
+            layout(mindmap, 100, height / 2);
+        }
+
+        function draw() {
+            background(10, 10, 16);
+            if (!mindmap) return;
+            camera.x = lerp(camera.x, camera.targetX, 0.1);
+            camera.y = lerp(camera.y, camera.targetY, 0.1);
+            camera.zoom = lerp(camera.zoom, camera.targetZoom, 0.1);
+            push();
+            translate(width / 2, height / 2);
+            scale(camera.zoom);
+            translate(-camera.x, -camera.y);
             let visibleNodes = mindmap.getVisibleNodes();
-            textAlign(CENTER, CENTER);
-            visibleNodes.forEach(node => {
-                textSize(12 + (3 - node.level) * 2);
-                node.width = max(textWidth(node.title) + 30, 80);
-                node.height = 40;
-            });
-
-            layoutNodes(mindmap, 100, height / 2);
+            visibleNodes.forEach(node => node.update());
+            visibleNodes.forEach(node => node.drawConnection());
+            visibleNodes.forEach(node => node.draw());
+            pop();
         }
 
-        function layoutNodes(node, x, y) {
-            node.targetX = x;
-            node.targetY = y;
-
-            if (!node.expanded || node.children.length === 0) return;
-
-            let childHeight = 0;
-            node.children.forEach(child => {
-                childHeight += getSubtreeHeight(child);
-            });
-
-            let startY = y - childHeight / 2;
-            let currentY = startY;
-
-            node.children.forEach(child => {
-                let subtreeHeight = getSubtreeHeight(child);
-                layoutNodes(child, x + 200, currentY + subtreeHeight / 2);
-                currentY += subtreeHeight;
-            });
-        }
-
-        function getSubtreeHeight(node) {
-            if (!node.expanded || node.children.length === 0) return 60;
-
-            let totalHeight = 0;
-            node.children.forEach(child => {
-                totalHeight += getSubtreeHeight(child);
-            });
-
-            return max(totalHeight, 60);
+        // --- User Interaction ---
+        function togglePanel() {
+            const panel = document.getElementById('jsonPanel');
+            const btn = document.getElementById('togglePanelBtn');
+            panel.classList.toggle('collapsed');
+            btn.innerHTML = panel.classList.contains('collapsed') ? '☰' : '✕';
         }
 
         function centerOnRoot() {
@@ -745,69 +744,52 @@ Please generate the complete JSON structure following these exact requirements. 
             }
         }
 
-        function draw() {
-            clear();
-
-            if (!mindmap) return;
-
-            camera.x = lerp(camera.x, camera.targetX, 0.1);
-            camera.y = lerp(camera.y, camera.targetY, 0.1);
-            camera.zoom = lerp(camera.zoom, camera.targetZoom, 0.1);
-
-            push();
-            translate(width / 2, height / 2);
-            scale(camera.zoom);
-            translate(-camera.x, -camera.y);
-
-            let visibleNodes = mindmap.getVisibleNodes();
-            visibleNodes.forEach(node => node.update());
-            visibleNodes.forEach(node => node.drawConnection());
-            visibleNodes.forEach(node => node.draw());
-
-            pop();
+        function updateInfoBox(node) {
+            const box = document.getElementById('infoBox');
+            const titleEl = document.getElementById('infoBoxTitle');
+            const contentEl = document.getElementById('infoBoxContent');
+            if (node) {
+                titleEl.textContent = node.title;
+                contentEl.textContent = node.script || node.notes || "No details available for this node.";
+                box.classList.add('show');
+            } else {
+                box.classList.remove('show');
+            }
         }
 
-        function mouseMoved() {
-            let worldPos = screenToWorld(mouseX, mouseY);
-            let node = getNodeAt(worldPos.x, worldPos.y);
-
-            const tooltip = document.getElementById('tooltip');
-
-            if (node && node.notes) {
-                tooltip.innerHTML = node.notes;
-                tooltip.style.left = (mouseX + 15) + 'px';
-                tooltip.style.top = (mouseY - 10) + 'px';
-                tooltip.classList.add('show');
-            } else {
-                tooltip.classList.remove('show');
-            }
+        function screenToWorld(sx, sy) {
+            return {
+                x: camera.x + (sx - width / 2) / camera.zoom,
+                y: camera.y + (sy - height / 2) / camera.zoom
+            };
         }
 
         function getNodeAt(x, y) {
             if (!mindmap) return null;
             let visibleNodes = mindmap.getVisibleNodes();
-            for (let node of visibleNodes) {
-                if (node.contains(x, y)) return node;
+            for (let i = visibleNodes.length - 1; i >= 0; i--) {
+                if (visibleNodes[i].contains(x, y)) return visibleNodes[i];
             }
             return null;
         }
 
-        function screenToWorld(screenX, screenY) {
-            return {
-                x: camera.x + (screenX - width / 2) / camera.zoom,
-                y: camera.y + (screenY - height / 2) / camera.zoom
-            };
-        }
-
         function mousePressed() {
             if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
-
             let worldPos = screenToWorld(mouseX, mouseY);
             let clickedNode = getNodeAt(worldPos.x, worldPos.y);
-
             if (clickedNode) {
-                clickedNode.toggle();
-                updateLayout();
+                if (isNarrating) {
+                    const newIndex = narrationScript.findIndex(step => step.node.id === clickedNode.id);
+                    if (newIndex > -1) {
+                        speechSynthesis.cancel();
+                        currentNarrationIndex = newIndex;
+                        narrateNext();
+                    }
+                } else {
+                    clickedNode.toggle();
+                    updateLayout();
+                    updateInfoBox(clickedNode);
+                }
             } else {
                 isDragging = true;
                 lastMouseX = mouseX;
@@ -831,29 +813,19 @@ Please generate the complete JSON structure following these exact requirements. 
         }
 
         function mouseWheel(event) {
-            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return;
-
+            if (mouseX < 400 && !document.getElementById('jsonPanel').classList.contains('collapsed')) return false;
             let zoomFactor = event.delta > 0 ? 0.9 : 1.1;
             let newZoom = constrain(camera.targetZoom * zoomFactor, 0.2, 3);
-
             let worldPos = screenToWorld(mouseX, mouseY);
             camera.targetX = worldPos.x - (mouseX - width / 2) / newZoom;
             camera.targetY = worldPos.y - (mouseY - height / 2) / newZoom;
             camera.targetZoom = newZoom;
-
             return false;
         }
 
         function windowResized() {
             resizeCanvas(windowWidth, windowHeight);
             updateLayout();
-        }
-
-        function keyPressed() {
-            if (key === ' ') {
-                handlePodcast();
-                return false;
-            }
         }
     </script>
 </body>
