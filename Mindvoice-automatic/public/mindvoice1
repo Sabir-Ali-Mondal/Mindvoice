@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mindvoice AI - Advanced</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-color: #0c0c0c;
+            --glass-bg: rgba(20, 20, 30, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --highlight-color: #FFD54F;
+            --accent-color: #8B5CF6;
+            --perplexity-color: #22bfa0;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: #f0f0f0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            touch-action: none;
+        }
+
+        /* --- UI Layers --- */
+        #canvasContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: relative;
+            z-index: 1000;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* Glass Style */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Notifications (Toasts) --- */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(30, 30, 40, 0.95);
+            border-left: 4px solid var(--highlight-color);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            min-width: 250px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: var(--error-color);
+        }
+
+        .toast.success {
+            border-left-color: var(--success-color);
+        }
+
+        /* --- Custom Modal --- */
+        #modalOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        #modalOverlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #1a1a1a;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        #modalOverlay.show .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--highlight-color);
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-close {
+            background: #333;
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* --- Top Bar --- */
+        .top-bar {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 4001;
+        }
+
+        #togglePanelBtn {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FFD54F, #FFB300);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 213, 79, 0.3);
+            flex-shrink: 0;
+        }
+
+        #breadcrumbs {
+            flex-grow: 1;
+            padding: 0 15px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #breadcrumbs span {
+            color: var(--highlight-color);
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* Search Bar */
+        #searchContainer {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 220px;
+            z-index: 3000;
+        }
+
+        #searchInput {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 25px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--highlight-color);
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        /* Side Panel */
+        #jsonPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 85%;
+            max-width: 360px;
+            height: 100vh;
+            transform: translateX(-110%);
+            transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            z-index: 4000;
+            background: #111;
+            border-right: 1px solid #333;
+        }
+
+        #jsonPanel.open {
+            transform: translateX(0);
+        }
+
+        .panel-content {
+            padding: 80px 25px 30px 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .panel-section-title {
+            color: #aaa;
+            font-size: 11px;
+            margin-top: 25px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .panel-input {
+            width: 100%;
+            margin-bottom: 10px;
+            background: #222;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .perplexity-btn {
+            background: var(--perplexity-color);
+            color: #000;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .close-panel-btn {
+            background: #333;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        /* Context Button */
+        #contextActionContainer {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1900;
+        }
+
+        #contextActionContainer.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .start-here-btn {
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid var(--highlight-color);
+            color: var(--highlight-color);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Bottom Controls */
+        #mediaControls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            padding: 8px 15px;
+            border-radius: 50px;
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .media-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .media-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .play-btn {
+            background: var(--highlight-color);
+            color: #000;
+            width: 52px;
+            height: 52px;
+            font-size: 22px;
+            box-shadow: 0 0 20px rgba(255, 213, 79, 0.2);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #0c0c0c;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            transition: opacity 0.5s;
+            font-size: 14px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid var(--highlight-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            #searchContainer {
+                top: 70px;
+                left: 15px;
+                right: 15px;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Notification Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Custom Modal -->
+    <div id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modalTitle">Alert</div>
+            <div class="modal-body" id="modalBody">Something happened.</div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initial Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div id="loaderText">Loading Engine...</div>
+    </div>
+
+    <div class="ui-layer">
+        <div class="top-bar interactive">
+            <button id="togglePanelBtn" onclick="togglePanel()">☰</button>
+            <div id="breadcrumbs">MINDVOICE AI</div>
+        </div>
+
+        <div id="searchContainer" class="interactive">
+            <input type="text" id="searchInput" placeholder="Search nodes..." oninput="handleSearch(this.value)">
+        </div>
+
+        <div id="jsonPanel" class="interactive">
+            <div class="panel-content">
+                <button class="action-btn close-panel-btn" onclick="togglePanel()">✕ Close Menu</button>
+
+                <h2 style="color:var(--highlight-color)">Mindvoice AI</h2>
+                <p style="color:#666; font-size:12px; margin-bottom:20px">Developed by S.A.M</p>
+
+                <!-- GLOBAL SETTINGS -->
+                <div class="panel-section-title">1. SETTINGS (LANG & VOICE)</div>
+                <input class="panel-input" type="text" id="contentLangInput" value="English" placeholder="Visual Language (e.g. English, French)">
+                <select id="voiceSelect" class="panel-input">
+                    <option value="" disabled selected>Loading voices...</option>
+                </select>
+                <div style="font-size:10px; color:#666; margin-top:-5px; margin-bottom:15px;">
+                    * Selected voice determines narration script language.
+                </div>
+
+                <!-- UNIFIED CONTENT DEFINITION -->
+                <div class="panel-section-title">2. CONTENT DEFINITION</div>
+                <input class="panel-input" type="text" id="mainTopicInput" placeholder="Topic (e.g. Solar System)">
+                <textarea class="panel-input" id="mainContextInput" rows="3" placeholder="Context details (e.g. For a 5 year old, focus on planets)..."></textarea>
+
+                <!-- GENERATION OPTIONS -->
+                <div class="panel-section-title">3. CHOOSE METHOD</div>
+
+                <!-- Method A: Perplexity -->
+                <button class="action-btn perplexity-btn" onclick="openPerplexitySearch()">Option A: Ask Perplexity (Free)</button>
+                <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:10px; line-height:1.4">
+                    Opens new tab. Copy the JSON it generates, then paste it below.
+                </div>
+
+                <!-- Method B: Auto AI -->
+                <button id="genBtn" class="action-btn" onclick="generateWithAI()">Option B: Auto Generate (API)</button>
+                <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:10px; line-height:1.4">
+                    Requires Backend/API Key configuration.
+                </div>
+
+                <!-- MANUAL DATA (PASTE) -->
+                <div class="panel-section-title">4. LOAD DATA</div>
+                <textarea class="panel-input" id="jsonInput" rows="4" placeholder="Paste JSON result here..."></textarea>
+                <button class="action-btn" style="background:#333" onclick="loadJsonData()">Load JSON</button>
+                <button class="action-btn" style="background:#222; margin-top:5px" onclick="loadDefaultExample()">Reset Demo</button>
+            </div>
+        </div>
+
+        <div id="contextActionContainer" class="interactive">
+            <button class="start-here-btn" onclick="startNarrationFromSelected()">
+                <span>▶</span> <span id="startBtnText">Play from Selection</span>
+            </button>
+        </div>
+
+        <div id="mediaControls" class="interactive">
+            <button class="media-btn" onclick="prevNode()">⏮</button>
+            <button class="media-btn play-btn" id="playBtn" onclick="togglePlayPause()">▶</button>
+            <button class="media-btn" onclick="stopNarration()">⏹</button>
+            <button class="media-btn" onclick="nextNode()">⏭</button>
+        </div>
+    </div>
+
+    <div id="canvasContainer"></div>
+
+    <script>
+        // --- Core Variables ---
+        let mindmap = null;
+        let selectedNode = null;
+        let p5Canvas;
+        let searchQuery = "";
+
+        // Camera
+        let cam = {
+            x: 0,
+            y: 0,
+            zoom: 1,
+            tx: 0,
+            ty: 0,
+            tzoom: 1
+        };
+        let touchData = {
+            active: false,
+            mode: 'none',
+            startX: 0,
+            startY: 0,
+            lastCamX: 0,
+            lastCamY: 0,
+            initDist: 0,
+            initZoom: 1
+        };
+
+        // Audio
+        let isPlaying = false;
+        let isPaused = false;
+        let queue = [];
+        let qIndex = 0;
+        let utterance = null;
+        let voices = [];
+        let selectedVoiceName = "";
+
+        // Responsive
+        let isMobile = false;
+
+        // --- Setup ---
+        function setup() {
+            p5Canvas = createCanvas(windowWidth, windowHeight);
+            p5Canvas.parent('canvasContainer');
+            noLoop();
+            checkMobile();
+            initVoices();
+            loadDefaultExample();
+
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = 0;
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 600);
+        }
+
+        // --- Voice Logic ---
+        function initVoices() {
+            if (window.speechSynthesis) {
+                let vs = speechSynthesis.getVoices();
+                if (vs.length > 0) populateVoiceList(vs);
+                speechSynthesis.onvoiceschanged = () => {
+                    voices = speechSynthesis.getVoices();
+                    populateVoiceList(voices);
+                };
+            } else {
+                let s = document.getElementById('voiceSelect');
+                s.innerHTML = "<option>TTS not supported on device</option>";
+                s.disabled = true;
+            }
+        }
+
+        function populateVoiceList(vs) {
+            const select = document.getElementById('voiceSelect');
+            if (select.options.length > 1 && select.value) return;
+
+            select.innerHTML = "";
+            vs.sort((a, b) => {
+                // Sort by: Google/Microsoft first, then Locale
+                const aN = a.name.toLowerCase(),
+                    bN = b.name.toLowerCase();
+                if (aN.includes('google') && !bN.includes('google')) return -1;
+                if (bN.includes('google') && !aN.includes('google')) return 1;
+                return a.lang.localeCompare(b.lang);
+            });
+
+            vs.forEach((v) => {
+                let option = document.createElement('option');
+                option.textContent = `${v.name} (${v.lang})`;
+                option.value = v.name;
+                option.setAttribute('data-lang', v.lang);
+                if (v.default) option.selected = true;
+                select.appendChild(option);
+            });
+            voices = vs;
+        }
+
+        // --- Notification System ---
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.innerHTML = `<span>${type === 'error' ? '⚠️' : 'ℹ️'}</span> ${msg}`;
+            container.appendChild(el);
+
+            // Trigger animation
+            requestAnimationFrame(() => el.classList.add('show'));
+
+            setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        function showModal(title, body) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = body;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        // --- Perplexity Integration (Frontend Only) ---
+        function openPerplexitySearch() {
+            // Get common inputs
+            const topic = document.getElementById('mainTopicInput').value.trim();
+            const details = document.getElementById('mainContextInput').value.trim();
+
+            // Get settings
+            const visualLang = document.getElementById('contentLangInput').value.trim() || "English";
+            const voiceSelect = document.getElementById('voiceSelect');
+            let scriptLang = "English (or matching user default)";
+
+            if (voiceSelect.selectedIndex >= 0) {
+                scriptLang = voiceSelect.options[voiceSelect.selectedIndex].text;
+            }
+
+            if (!topic) {
+                showModal("Missing Topic", "Please enter a topic in the Content Definition section.");
+                return;
+            }
+
+            // Constructing a System Prompt
+            const systemPrompt = `
+Generate a comprehensive, hierarchical JSON dataset for a mind map.
+
+TOPIC: "${topic}"
+CONTEXT/DETAILS: "${details}"
+VISUAL TEXT LANGUAGE: "${visualLang}"
+NARRATION SCRIPT LANGUAGE: "${scriptLang}"
+
+STRICT RULES:
+1. Return ONLY valid JSON.
+2. Wrap in markdown code blocks (\`\`\`json).
+3. The root object must have: "id": "root".
+4. Every node must have:
+   - "title" (max 15-20 chars, in ${visualLang})
+   - "notes" (short summary, max 10 words, in ${visualLang})
+   - "script" (conversational explanation, written in ${scriptLang} so it matches the text-to-speech engine)
+   - "children" (array of sub-nodes)
+
+Follow this structure exactly:
+{
+  "id": "root",
+  "title": "Main Topic (${visualLang})",
+  "notes": "Overview...",
+  "script": "Hello, let's discuss ${topic}... (in ${scriptLang})",
+  "children": [
+    {
+       "id": "sub1",
+       "title": "Subtopic",
+       "notes": "Details...",
+       "script": "Let's look at...",
+       "children": []
+    }
+  ]
+}`;
+
+            const encodedPrompt = encodeURIComponent(systemPrompt);
+            const perplexityUrl = `https://www.perplexity.ai/search?q=${encodedPrompt}`;
+            window.open(perplexityUrl, '_blank');
+
+            showToast("Perplexity Opened! Copy JSON & Paste it below.", "info");
+        }
+
+        // --- AI Generation Logic (Backend) ---
+        async function generateWithAI() {
+            // Get common inputs
+            const topic = document.getElementById('mainTopicInput').value.trim();
+            const details = document.getElementById('mainContextInput').value.trim();
+
+            // Get settings
+            const contentLang = document.getElementById('contentLangInput').value.trim() || "English";
+            const voiceSelect = document.getElementById('voiceSelect');
+            let narrationLangName = "English";
+
+            if (voiceSelect.selectedIndex >= 0) {
+                narrationLangName = voiceSelect.options[voiceSelect.selectedIndex].text;
+                selectedVoiceName = voiceSelect.value;
+            }
+
+            if (!topic) {
+                showModal("Missing Info", "Please enter a topic in the Content Definition section.");
+                return;
+            }
+
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            loaderText.innerText = `Thinking in ${contentLang}...`;
+
+            document.getElementById('genBtn').disabled = true;
+
+            const prompt = `You are a JSON generator for an educational mind map.
+                
+                TOPIC: ${topic}
+                CONTEXT: ${details}
+                
+                LANGUAGE INSTRUCTIONS (IMPORTANT):
+                1. Write visual text (title, notes) in: ${contentLang}.
+                2. Write narration (script) in: ${narrationLangName} (Matching the selected Text-to-Speech engine).
+                
+                JSON RULES:
+                1. Output STRICTLY valid JSON. No markdown.
+                2. Structure must be hierarchical (root -> children).
+                3. "script" should be conversational.
+                4. "title" should be max 18-20 chr .
+                5. "notes" should be max 8-10 words in two line summaries.
+                
+                JSON TEMPLATE:
+                {
+                    "id": "root",
+                    "title": "Main Topic (${contentLang})",
+                    "notes": "Overview (${contentLang})",
+                    "script": "Hello, let's learn about... (${narrationLangName})",
+                    "children": [
+                        {
+                            "id": "sub1",
+                            "title": "Subtopic",
+                            "notes": "Details...",
+                            "script": "Narration...",
+                            "children": []
+                        }
+                    ]
+                }
+            `;
+
+            try {
+                // NOTE: This fetch assumes a backend exists at /api/generate
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error or Backend missing');
+
+                const data = await response.json();
+                let rawJson = data.content;
+                rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                const parsedData = JSON.parse(rawJson);
+
+                processData(parsedData);
+                togglePanel();
+                showToast("Mind Map Generated!", "success");
+
+            } catch (error) {
+                console.error(error);
+                showModal("API/Backend Error", "Could not reach backend. Try the 'Ask Perplexity' button instead!");
+            } finally {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+                document.getElementById('genBtn').disabled = false;
+            }
+        }
+
+        // --- Standard P5 & Logic ---
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            checkMobile();
+            refreshMap();
+        }
+
+        function checkMobile() {
+            isMobile = windowWidth < 700;
+        }
+
+        function draw() {
+            background(12, 12, 14);
+            let needsFrame = false;
+            cam.x = lerp(cam.x, cam.tx, 0.12);
+            cam.y = lerp(cam.y, cam.ty, 0.12);
+            cam.zoom = lerp(cam.zoom, cam.tzoom, 0.12);
+            if (abs(cam.x - cam.tx) > 0.5 || abs(cam.zoom - cam.tzoom) > 0.001) needsFrame = true;
+
+            push();
+            translate(width / 2, height / 2);
+            scale(cam.zoom);
+            translate(-cam.x, -cam.y);
+            if (mindmap) {
+                drawConnections(mindmap);
+                drawNodes(mindmap);
+            }
+            pop();
+            if (isPlaying && frameCount % 60 === 0) needsFrame = true;
+            if (needsFrame) requestAnimationFrame(() => redraw());
+        }
+
+        function drawNodes(node) {
+            let isDimmed = false;
+            if (searchQuery.length > 1) {
+                let txt = (node.title + " " + node.notes).toLowerCase();
+                if (!txt.includes(searchQuery.toLowerCase())) isDimmed = true;
+            }
+            if (!node.visible && !isDimmed) return;
+
+            let isSel = (node === selectedNode);
+            let isCurrent = (isPlaying && queue[qIndex] && queue[qIndex].node === node);
+
+            push();
+            rectMode(CENTER);
+            if (isDimmed) {
+                drawingContext.globalAlpha = 0.2;
+                stroke(100);
+                fill(20);
+            } else if (isCurrent) {
+                stroke(255, 213, 79);
+                strokeWeight(3);
+                fill(30, 25, 10);
+                drawingContext.shadowBlur = 15;
+                drawingContext.shadowColor = "rgba(255, 213, 79, 0.4)";
+                drawingContext.globalAlpha = 1;
+            } else if (isSel) {
+                stroke(255);
+                strokeWeight(2);
+                fill(40, 40, 50);
+                drawingContext.shadowBlur = 0;
+                drawingContext.globalAlpha = 1;
+            } else {
+                stroke(node.color);
+                strokeWeight(1);
+                fill(20, 20, 24);
+                drawingContext.shadowBlur = 0;
+                drawingContext.globalAlpha = 1;
+            }
+
+            rect(node.x, node.y, node.w, node.h, 10);
+            drawingContext.shadowBlur = 0;
+
+            // Text
+            let titleSize = isMobile ? 12 : 14;
+            let bodySize = isMobile ? 10 : 11;
+            let lineSpacing = isMobile ? 12 : 14;
+            let titleOffset = isMobile ? 18 : 22;
+            let bodyOffset = isMobile ? 40 : 48;
+
+            noStroke();
+            fill(isCurrent && !isDimmed ? "#FFD54F" : "#fff");
+            textAlign(CENTER, CENTER);
+            textSize(titleSize);
+            textStyle(BOLD);
+            text(node.title, node.x, node.y - node.h / 2 + titleOffset);
+
+            fill((isCurrent && !isDimmed) ? 240 : 180);
+            textSize(bodySize);
+            textStyle(NORMAL);
+            if (node.lines) {
+                let sy = node.y - node.h / 2 + bodyOffset;
+                for (let i = 0; i < node.lines.length; i++) text(node.lines[i], node.x, sy + (i * lineSpacing));
+            }
+
+            // Expander
+            if (node.children.length > 0) {
+                stroke(node.color);
+                strokeWeight(1);
+                fill(node.expanded ? node.color : 0);
+                circle(node.x + node.w / 2, node.y, 20);
+                fill(node.expanded ? 0 : node.color);
+                noStroke();
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text(node.expanded ? "-" : "+", node.x + node.w / 2, node.y + 1);
+            }
+            pop();
+            if (node.expanded) node.children.forEach(drawNodes);
+        }
+
+        function drawConnections(node) {
+            if (!node.expanded) return;
+            node.children.forEach(child => {
+                stroke(node.color);
+                strokeWeight(1.5);
+                if (searchQuery.length > 1) stroke(60);
+                noFill();
+                let curveLen = isMobile ? 30 : 50;
+                bezier(node.x + node.w / 2, node.y, node.x + node.w / 2 + curveLen, node.y,
+                    child.x - child.w / 2 - curveLen, child.y, child.x - child.w / 2, child.y);
+                drawConnections(child);
+            });
+        }
+
+        // --- Interaction ---
+        function isInteractingWithUI(e) {
+            return (e.target.closest('.interactive') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select'));
+        }
+
+        function touchStarted(e) {
+            if (isInteractingWithUI(e)) return true;
+            let mx = touches.length > 0 ? touches[0].x : mouseX;
+            let my = touches.length > 0 ? touches[0].y : mouseY;
+            let wPos = screenToWorld(mx, my);
+
+            let toggleNode = getNodeAt(mindmap, wPos.x, wPos.y, true);
+            if (toggleNode) {
+                toggleNode.expanded = !toggleNode.expanded;
+                refreshMap();
+                return false;
+            }
+
+            let node = getNodeAt(mindmap, wPos.x, wPos.y, false);
+            if (node) {
+                selectNode(node);
+                return false;
+            }
+
+            touchData.active = true;
+            touchData.startX = mx;
+            touchData.startY = my;
+            touchData.lastCamX = cam.tx;
+            touchData.lastCamY = cam.ty;
+
+            if (touches.length === 2) {
+                touchData.mode = 'pinch';
+                touchData.initDist = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+                touchData.initZoom = cam.tzoom;
+            } else {
+                touchData.mode = 'drag';
+            }
+            return false;
+        }
+
+        function touchMoved(e) {
+            if (isInteractingWithUI(e)) return true;
+            if (!touchData.active) return false;
+            if (touchData.mode === 'drag') {
+                let mx = touches.length > 0 ? touches[0].x : mouseX;
+                let my = touches.length > 0 ? touches[0].y : mouseY;
+                let dx = (mx - touchData.startX) / cam.zoom;
+                let dy = (my - touchData.startY) / cam.zoom;
+                cam.tx = touchData.lastCamX - dx;
+                cam.ty = touchData.lastCamY - dy;
+                redraw();
+            } else if (touchData.mode === 'pinch' && touches.length === 2) {
+                let currDist = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+                let scale = currDist / touchData.initDist;
+                cam.tzoom = constrain(touchData.initZoom * scale, 0.2, 3.0);
+                redraw();
+            }
+            return false;
+        }
+
+        function touchEnded() {
+            touchData.active = false;
+            return true;
+        }
+
+        function mouseWheel(e) {
+            if (isInteractingWithUI(e)) return true;
+            cam.tzoom = constrain(cam.tzoom * (e.delta > 0 ? 0.9 : 1.1), 0.2, 3.0);
+            redraw();
+            return false;
+        }
+
+        // --- Helpers ---
+        function handleSearch(val) {
+            searchQuery = val.trim();
+            if (searchQuery.length > 2) {
+                let found = findNodeByText(mindmap, searchQuery);
+                if (found) {
+                    let p = found.parent;
+                    while (p) {
+                        p.expanded = true;
+                        p = p.parent;
+                    }
+                    refreshMap();
+                    cam.tx = found.x;
+                    cam.ty = found.y;
+                    cam.tzoom = 1.1;
+                }
+            }
+            redraw();
+        }
+
+        function findNodeByText(node, txt) {
+            if ((node.title + node.notes).toLowerCase().includes(txt.toLowerCase())) return node;
+            for (let c of node.children) {
+                let r = findNodeByText(c, txt);
+                if (r) return r;
+            }
+            return null;
+        }
+
+        function getNodeAt(node, x, y, checkToggleOnly) {
+            if (!node.visible && !node.expanded) return null;
+            if (node.children.length > 0) {
+                let d = dist(x, y, node.x + node.w / 2, node.y);
+                if (d < 20) return node;
+            }
+            if (checkToggleOnly) {
+                if (node.expanded) {
+                    for (let c of node.children) {
+                        let r = getNodeAt(c, x, y, true);
+                        if (r) return r;
+                    }
+                }
+                return null;
+            }
+            if (x > node.x - node.w / 2 && x < node.x + node.w / 2 && y > node.y - node.h / 2 && y < node.y + node.h / 2) return node;
+            if (node.expanded) {
+                for (let c of node.children) {
+                    let r = getNodeAt(c, x, y, false);
+                    if (r) return r;
+                }
+            }
+            return null;
+        }
+
+        function selectNode(node) {
+            selectedNode = node;
+            const ctxBtn = document.getElementById('contextActionContainer');
+            const ctxText = document.getElementById('startBtnText');
+            ctxBtn.classList.add('show');
+            let btnName = node.title;
+            if (btnName.length > 20) btnName = btnName.substring(0, 18) + "..";
+            ctxText.innerText = "Play from: " + btnName;
+
+            let crumbs = node.title;
+            let p = node.parent;
+            while (p && p.id !== 'root') {
+                crumbs = p.title + " > " + crumbs;
+                p = p.parent;
+            }
+            document.getElementById('breadcrumbs').innerHTML = "<span>" + crumbs + "</span>";
+            cam.tx = node.x;
+            cam.ty = node.y;
+            redraw();
+        }
+
+        function calculateLayout(node) {
+            let boxWidth = isMobile ? 130 : 160;
+            let fontSize = isMobile ? 10 : 11;
+            let padding = isMobile ? 50 : 60;
+            let lineH = isMobile ? 12 : 14;
+            textSize(fontSize);
+            let words = (node.notes || "").split(" ");
+            let lines = [];
+            let cur = words[0] || "";
+            for (let i = 1; i < words.length; i++) {
+                if (textWidth(cur + " " + words[i]) < boxWidth - 20) cur += " " + words[i];
+                else {
+                    lines.push(cur);
+                    cur = words[i];
+                }
+            }
+            lines.push(cur);
+            node.lines = lines;
+            node.w = boxWidth;
+            node.h = padding + (lines.length * lineH);
+            node.visible = true;
+            if (node.children.length === 0) {
+                node.subH = node.h + 20;
+                return;
+            }
+            let total = 0;
+            node.children.forEach(c => {
+                calculateLayout(c);
+                total += c.subH;
+            });
+            node.subH = total;
+        }
+
+        function applyPos(node, x, y) {
+            node.tx = x;
+            node.ty = y;
+            if (node.x === 0) {
+                node.x = x;
+                node.y = y;
+            }
+            let colGap = isMobile ? 180 : 240;
+            let currY = y - node.subH / 2;
+            node.children.forEach(c => {
+                applyPos(c, x + colGap, currY + c.subH / 2);
+                currY += c.subH;
+            });
+        }
+
+        function refreshMap() {
+            if (!mindmap) return;
+            calculateLayout(mindmap);
+            applyPos(mindmap, 0, 0);
+            redraw();
+        }
+
+        function screenToWorld(sx, sy) {
+            return {
+                x: cam.x + (sx - width / 2) / cam.zoom,
+                y: cam.y + (sy - height / 2) / cam.zoom
+            };
+        }
+
+        // --- Playback ---
+        function startNarrationFromSelected() {
+            if (!mindmap) return;
+            queue = [];
+
+            function buildQueue(n) {
+                queue.push({
+                    node: n,
+                    text: n.script || (n.title + ". " + n.notes)
+                });
+                if (n.children) n.children.forEach(buildQueue);
+            }
+            buildQueue(mindmap);
+            qIndex = 0;
+            if (selectedNode) {
+                let idx = queue.findIndex(i => i.node === selectedNode);
+                if (idx !== -1) qIndex = idx;
+            }
+            isPlaying = true;
+            isPaused = false;
+            document.getElementById('contextActionContainer').classList.remove('show');
+            playSegment();
+        }
+
+        function playSegment() {
+            if (qIndex >= queue.length) {
+                stopNarration();
+                return;
+            }
+            let item = queue[qIndex];
+
+            let p = item.node.parent;
+            let needsRefresh = false;
+            while (p) {
+                if (!p.expanded) {
+                    p.expanded = true;
+                    needsRefresh = true;
+                }
+                p = p.parent;
+            }
+            if (needsRefresh) refreshMap();
+
+            selectedNode = item.node;
+            let crumbs = item.node.title;
+            let pp = item.node.parent;
+            while (pp && pp.id !== 'root') {
+                crumbs = pp.title + " > " + crumbs;
+                pp = pp.parent;
+            }
+            document.getElementById('breadcrumbs').innerHTML = "<span>" + crumbs + "</span>";
+
+            cam.tx = item.node.x;
+            cam.ty = item.node.y;
+            cam.tzoom = isMobile ? 1.0 : 1.2;
+
+            speechSynthesis.cancel();
+            utterance = new SpeechSynthesisUtterance(item.text);
+
+            // Voice Selection logic
+            if (selectedVoiceName) {
+                const specificVoice = voices.find(v => v.name === selectedVoiceName);
+                if (specificVoice) utterance.voice = specificVoice;
+            } else {
+                let lang = detectLang(item.text);
+                let v = voices.find(vo => vo.lang.startsWith(lang) && vo.name.includes("Google"));
+                if (v) utterance.voice = v;
+            }
+
+            utterance.onend = () => {
+                if (isPlaying && !isPaused) nextNode();
+            };
+            speechSynthesis.speak(utterance);
+            updateBtn(true);
+            redraw();
+        }
+
+        function togglePlayPause() {
+            if (!isPlaying) {
+                startNarrationFromSelected();
+                return;
+            }
+            if (isPaused) {
+                isPaused = false;
+                speechSynthesis.resume();
+                if (!speechSynthesis.speaking) playSegment();
+                else updateBtn(true);
+            } else {
+                isPaused = true;
+                speechSynthesis.pause();
+                updateBtn(false);
+            }
+        }
+
+        function stopNarration() {
+            isPlaying = false;
+            isPaused = false;
+            speechSynthesis.cancel();
+            updateBtn(false);
+            redraw();
+        }
+
+        function nextNode() {
+            if (qIndex < queue.length - 1) {
+                qIndex++;
+                playSegment();
+            } else stopNarration();
+        }
+
+        function prevNode() {
+            if (qIndex > 0) {
+                qIndex--;
+                playSegment();
+            }
+        }
+
+        function updateBtn(playing) {
+            document.getElementById('playBtn').innerText = playing ? "⏸" : "▶";
+        }
+
+        function detectLang(t) {
+            return /[\u0980-\u09FF]/.test(t) ? 'bn' : /[\u0900-\u097F]/.test(t) ? 'hi' : 'en';
+        }
+
+        function togglePanel() {
+            const panel = document.getElementById('jsonPanel');
+            const btn = document.getElementById('togglePanelBtn');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) btn.innerHTML = "✕";
+            else btn.innerHTML = "☰";
+        }
+
+        // --- Data ---
+        function loadDefaultExample() {
+            const data = {
+                "id": "root",
+                "title": "Universe",
+                "notes": "Everything that exists.",
+                "script": "Let's explore the Universe.",
+                "children": [{
+                    "id": "physics",
+                    "title": "Physics",
+                    "notes": "Laws of nature.",
+                    "children": [{
+                            "id": "qm",
+                            "title": "Quantum Mechanics",
+                            "notes": "Small scale physics.",
+                            "script": "Quantum mechanics deals with things on the scale of atoms."
+                        },
+                        {
+                            "id": "rel",
+                            "title": "Relativity",
+                            "notes": "Gravity and speed.",
+                            "script": "Relativity explains how gravity works."
+                        }
+                    ]
+                }]
+            };
+            processData(data);
+        }
+
+        function loadJsonData() {
+            try {
+                let rawInput = document.getElementById('jsonInput').value;
+                // AI often returns markdown like ```json ... ```, strip it
+                rawInput = rawInput.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                processData(JSON.parse(rawInput));
+                togglePanel();
+                showToast("JSON Loaded Successfully", "success");
+            } catch (e) {
+                showModal("JSON Error", "The pasted JSON is invalid. Ensure you copied only the code from { to }.");
+            }
+        }
+
+        function processData(d, parent = null, depth = 0, idx = 0) {
+            function parse(node, p, dp, i) {
+                let newNode = {
+                    id: node.id || Math.random().toString(),
+                    title: node.title,
+                    notes: node.notes || "",
+                    script: node.script || (node.title + ". " + (node.notes || "")),
+                    parent: p,
+                    children: [],
+                    expanded: dp < 1,
+                    visible: true,
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                    tx: 0,
+                    ty: 0,
+                    subH: 0,
+                    color: dp === 0 ? '#FFD54F' : `hsl(${(i * 50 + dp * 30) % 360}, 75%, 60%)`
+                };
+                if (node.children) newNode.children = node.children.map((c, ix) => parse(c, newNode, dp + 1, ix));
+                return newNode;
+            }
+            mindmap = parse(d, null, 0, 0);
+            refreshMap();
+            cam.tx = 0;
+            cam.ty = 0;
+            cam.tzoom = 1;
+            redraw();
+        }
+    </script>
+</body>
+
+</html>
