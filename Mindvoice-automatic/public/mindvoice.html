@@ -20,7 +20,6 @@
             --glass-border: rgba(255, 255, 255, 0.1);
             --highlight-color: #FFD54F;
             --accent-color: #8B5CF6;
-            --perplexity-color: #22bfa0;
             --error-color: #ef4444;
             --success-color: #10b981;
         }
@@ -284,12 +283,10 @@
         .panel-section-title {
             color: #aaa;
             font-size: 11px;
-            margin-top: 25px;
-            margin-bottom: 8px;
+            margin-top: 15px;
+            margin-bottom: 5px;
             font-weight: 700;
             letter-spacing: 1px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
         }
 
         .panel-input {
@@ -314,15 +311,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s;
-        }
-
-        .perplexity-btn {
-            background: var(--perplexity-color);
-            color: #000;
-        }
-
-        .action-btn:hover {
-            opacity: 0.9;
         }
 
         .action-btn:disabled {
@@ -497,41 +485,33 @@
                 <button class="action-btn close-panel-btn" onclick="togglePanel()">✕ Close Menu</button>
 
                 <h2 style="color:var(--highlight-color)">Mindvoice AI</h2>
-                <p style="color:#666; font-size:12px; margin-bottom:20px">Developed by S.A.M</p>
+                <p style="color:#666; font-size:12px; margin-bottom:20px">Interactive Knowledge Graph</p>
 
-                <!-- GLOBAL SETTINGS -->
-                <div class="panel-section-title">1. SETTINGS (LANG & VOICE)</div>
-                <input class="panel-input" type="text" id="contentLangInput" value="English" placeholder="Visual Language (e.g. English, French)">
+                <!-- NEW GENERATION SECTION -->
+                <div class="panel-section-title">QUICK GENERATE</div>
+
+                <input class="panel-input" type="text" id="topicInput" placeholder="Topic (e.g. Ancient Rome)">
+                <textarea class="panel-input" id="descInput" rows="2" placeholder="Context details..."></textarea>
+
+                <div class="panel-section-title">LANGUAGES</div>
+
+                <!-- Content Language -->
+                <input class="panel-input" type="text" id="contentLangInput" value="English" placeholder="Text Language (e.g. English, French)">
+
+                <!-- Narration Voice -->
                 <select id="voiceSelect" class="panel-input">
                     <option value="" disabled selected>Loading voices...</option>
                 </select>
-                <div style="font-size:10px; color:#666; margin-top:-5px; margin-bottom:15px;">
-                    * Selected voice determines narration script language.
+                <div style="font-size:10px; color:#666; margin-top:-5px; margin-bottom:10px;">
+                    *Narration script will generate in the language of the selected voice.
                 </div>
 
-                <!-- UNIFIED CONTENT DEFINITION -->
-                <div class="panel-section-title">2. CONTENT DEFINITION</div>
-                <input class="panel-input" type="text" id="mainTopicInput" placeholder="Topic (e.g. Solar System)">
-                <textarea class="panel-input" id="mainContextInput" rows="3" placeholder="Context details (e.g. For a 5 year old, focus on planets)..."></textarea>
+                <button id="genBtn" class="action-btn" onclick="generateWithAI()">✨ Generate Mind Map</button>
 
-                <!-- GENERATION OPTIONS -->
-                <div class="panel-section-title">3. CHOOSE METHOD</div>
+                <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
 
-                <!-- Method A: Perplexity -->
-                <button class="action-btn perplexity-btn" onclick="openPerplexitySearch()">Option A: Ask Perplexity (Free)</button>
-                <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:10px; line-height:1.4">
-                    Opens new tab. Copy the JSON it generates, then paste it below.
-                </div>
-
-                <!-- Method B: Auto AI -->
-                <button id="genBtn" class="action-btn" onclick="generateWithAI()">Option B: Auto Generate (API)</button>
-                <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:10px; line-height:1.4">
-                    Requires Backend/API Key configuration.
-                </div>
-
-                <!-- MANUAL DATA (PASTE) -->
-                <div class="panel-section-title">4. LOAD DATA</div>
-                <textarea class="panel-input" id="jsonInput" rows="4" placeholder="Paste JSON result here..."></textarea>
+                <div class="panel-section-title">MANUAL DATA</div>
+                <textarea class="panel-input" id="jsonInput" rows="4" placeholder="Paste JSON structure"></textarea>
                 <button class="action-btn" style="background:#333" onclick="loadJsonData()">Load JSON</button>
                 <button class="action-btn" style="background:#222; margin-top:5px" onclick="loadDefaultExample()">Reset Demo</button>
             </div>
@@ -675,90 +655,28 @@
             document.getElementById('modalOverlay').classList.remove('show');
         }
 
-        // --- Perplexity Integration (Frontend Only) ---
-        function openPerplexitySearch() {
-            // Get common inputs
-            const topic = document.getElementById('mainTopicInput').value.trim();
-            const details = document.getElementById('mainContextInput').value.trim();
-
-            // Get settings
-            const visualLang = document.getElementById('contentLangInput').value.trim() || "English";
-            const voiceSelect = document.getElementById('voiceSelect');
-            let scriptLang = "English (or matching user default)";
-
-            if (voiceSelect.selectedIndex >= 0) {
-                scriptLang = voiceSelect.options[voiceSelect.selectedIndex].text;
-            }
-
-            if (!topic) {
-                showModal("Missing Topic", "Please enter a topic in the Content Definition section.");
-                return;
-            }
-
-            // Constructing a System Prompt
-            const systemPrompt = `
-Generate a comprehensive, hierarchical JSON dataset for a mind map.
-
-TOPIC: "${topic}"
-CONTEXT/DETAILS: "${details}"
-VISUAL TEXT LANGUAGE: "${visualLang}"
-NARRATION SCRIPT LANGUAGE: "${scriptLang}"
-
-STRICT RULES:
-1. Return ONLY valid JSON.
-2. Wrap in markdown code blocks (\`\`\`json).
-3. The root object must have: "id": "root".
-4. Every node must have:
-   - "title" (max 15-20 chars, in ${visualLang})
-   - "notes" (short summary, max 10 words, in ${visualLang})
-   - "script" (conversational explanation, written in ${scriptLang} so it matches the text-to-speech engine)
-   - "children" (array of sub-nodes)
-
-Follow this structure exactly:
-{
-  "id": "root",
-  "title": "Main Topic (${visualLang})",
-  "notes": "Overview...",
-  "script": "Hello, let's discuss ${topic}... (in ${scriptLang})",
-  "children": [
-    {
-       "id": "sub1",
-       "title": "Subtopic",
-       "notes": "Details...",
-       "script": "Let's look at...",
-       "children": []
-    }
-  ]
-}`;
-
-            const encodedPrompt = encodeURIComponent(systemPrompt);
-            const perplexityUrl = `https://www.perplexity.ai/search?q=${encodedPrompt}`;
-            window.open(perplexityUrl, '_blank');
-
-            showToast("Perplexity Opened! Copy JSON & Paste it below.", "info");
-        }
-
-        // --- AI Generation Logic (Backend) ---
+        // --- AI Generation Logic ---
         async function generateWithAI() {
-            // Get common inputs
-            const topic = document.getElementById('mainTopicInput').value.trim();
-            const details = document.getElementById('mainContextInput').value.trim();
-
-            // Get settings
+            const topic = document.getElementById('topicInput').value.trim();
+            const details = document.getElementById('descInput').value.trim();
             const contentLang = document.getElementById('contentLangInput').value.trim() || "English";
+
             const voiceSelect = document.getElementById('voiceSelect');
+            let selectedVoiceOpt = null;
             let narrationLangName = "English";
 
             if (voiceSelect.selectedIndex >= 0) {
-                narrationLangName = voiceSelect.options[voiceSelect.selectedIndex].text;
+                selectedVoiceOpt = voiceSelect.options[voiceSelect.selectedIndex];
                 selectedVoiceName = voiceSelect.value;
+                narrationLangName = selectedVoiceOpt.text; // e.g. "Google Hindi (hi-IN)"
             }
 
             if (!topic) {
-                showModal("Missing Info", "Please enter a topic in the Content Definition section.");
+                showModal("Missing Info", "Please enter a topic to generate.");
                 return;
             }
 
+            // Show Loader
             const loader = document.getElementById('loader');
             const loaderText = document.getElementById('loaderText');
             loader.style.display = 'flex';
@@ -767,7 +685,9 @@ Follow this structure exactly:
 
             document.getElementById('genBtn').disabled = true;
 
-            const prompt = `You are a JSON generator for an educational mind map.
+            // Prompt Engineering
+            const prompt = `
+                You are a JSON generator for an educational mind map.
                 
                 TOPIC: ${topic}
                 CONTEXT: ${details}
@@ -802,7 +722,6 @@ Follow this structure exactly:
             `;
 
             try {
-                // NOTE: This fetch assumes a backend exists at /api/generate
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: {
@@ -813,9 +732,11 @@ Follow this structure exactly:
                     })
                 });
 
-                if (!response.ok) throw new Error('API Error or Backend missing');
+                if (!response.ok) throw new Error('API Error');
 
                 const data = await response.json();
+
+                // Clean response
                 let rawJson = data.content;
                 rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
 
@@ -825,9 +746,13 @@ Follow this structure exactly:
                 togglePanel();
                 showToast("Mind Map Generated!", "success");
 
+                cam.tx = 0;
+                cam.ty = 0;
+                cam.tzoom = 1;
+
             } catch (error) {
                 console.error(error);
-                showModal("API/Backend Error", "Could not reach backend. Try the 'Ask Perplexity' button instead!");
+                showModal("Generation Failed", "Could not generate content. Please check your network or API configuration.");
             } finally {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 500);
@@ -1331,15 +1256,11 @@ Follow this structure exactly:
 
         function loadJsonData() {
             try {
-                let rawInput = document.getElementById('jsonInput').value;
-                // AI often returns markdown like ```json ... ```, strip it
-                rawInput = rawInput.replace(/```json/g, '').replace(/```/g, '').trim();
-
-                processData(JSON.parse(rawInput));
+                processData(JSON.parse(document.getElementById('jsonInput').value));
                 togglePanel();
-                showToast("JSON Loaded Successfully", "success");
+                showToast("JSON Loaded");
             } catch (e) {
-                showModal("JSON Error", "The pasted JSON is invalid. Ensure you copied only the code from { to }.");
+                showModal("JSON Error", "The pasted JSON is invalid.");
             }
         }
 
